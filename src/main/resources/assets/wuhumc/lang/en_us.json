@@ -1,0 +1,10 @@
+{
+  "category.wuhumc.category": "wuhumc",
+  "key.wuhumc.charge": "Charge",
+  "itemGroup.wuhumc.wuhumc": "wuhu",
+  "item.wuhumc.ready_item": "Ready",
+  "item.wuhumc.not_ready_item": "Not Ready",
+  "title.wuhumc.spawn_point": "§6Spawn point",
+  "message.wuhumc.ready_alert": "Switch to offhand",
+  "message.wuhumc.cancel_ready": "Ready state canceled"
+}

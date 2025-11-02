@@ -1,0 +1,10 @@
+{
+  "category.wuhumc.category": "芜湖",
+  "key.wuhumc.charge": "蓄力跳",
+  "itemGroup.wuhumc.wuhumc": "芜湖",
+  "item.wuhumc.ready_item": "准备",
+  "item.wuhumc.not_ready_item": "取消准备",
+  "title.wuhumc.spawn_point": "§6重生点已设置",
+  "message.wuhumc.ready_alert": "§6当所有进入游戏的玩家全部准备时就会开始游戏(包括只有一人时)，请切换到副手并右键确认操作",
+  "message.wuhumc.cancel_ready": "已取消准备"
+}

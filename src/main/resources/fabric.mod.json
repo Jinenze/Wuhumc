@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "wuhumc",
+  "version": "${version}",
+  "name": "Wuhumc",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "xyz.jinenze.wuhumc.client.WuhumcClient"
+    ],
+    "main": [
+      "xyz.jinenze.wuhumc.Wuhumc"
+    ],
+    "modmenu": [
+      "xyz.jinenze.wuhumc.client.config.ModMenuEntry"
+    ]
+  },
+  "mixins": [
+    "whmc.mixins.json",
+    {
+      "config": "whmc.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

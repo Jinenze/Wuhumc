@@ -9,7 +9,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
-import xyz.jinenze.wuhumc.action.ServerMixinGetter;
+import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.init.ModItems;
 
 public class NotReadyItem extends Item {
@@ -20,8 +20,8 @@ public class NotReadyItem extends Item {
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (user instanceof ServerPlayerEntity player) {
-            var processor = ((ServerMixinGetter) player).wuhumc$getProcessor();
-            var currentGame = ((ServerMixinGetter) player).wuhumc$getCurrentGame();
+            var processor = ProcessorManager.getInstance().getProcessor(player);
+            var currentGame = ProcessorManager.getInstance().getProcessor(player).getCurrentGame();
             processor.removeListener(currentGame.gameStartListener());
             processor.listen(currentGame.notReadyListener());
             var inventory = player.getInventory();

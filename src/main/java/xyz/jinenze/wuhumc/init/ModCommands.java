@@ -5,10 +5,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import xyz.jinenze.wuhumc.action.ActionProvider;
-import xyz.jinenze.wuhumc.action.EventListener;
-import xyz.jinenze.wuhumc.action.Game;
-import xyz.jinenze.wuhumc.action.ServerMixinGetter;
+import xyz.jinenze.wuhumc.action.*;
 
 import java.util.Collection;
 
@@ -20,7 +17,6 @@ public class ModCommands {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal("wuhumc")
                         .then(literal("action").requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
-                                .then(literal("respawnmusic").then(emitActions(ModServerActions.respawnMusic)))
                                 .then(literal("dumbactions").then(emitActions(ModServerActions.dumbActions)))
                                 .then(literal("test").then(emitActions(ModServerActions.test)))
                                 .then(literal("clear").then(argument("targets", EntityArgumentType.players())
@@ -28,7 +24,7 @@ public class ModCommands {
                                             Collection<ServerPlayerEntity> collection = EntityArgumentType.getPlayers(context, "targets");
                                             if (!collection.isEmpty()) {
                                                 for (ServerPlayerEntity player : collection) {
-                                                    ((ServerMixinGetter) player).wuhumc$getProcessor().clearActions();
+                                                    ProcessorManager.getInstance().getProcessor(player).clearActions();
                                                 }
                                             }
                                             return collection.size();
@@ -47,7 +43,7 @@ public class ModCommands {
                     Collection<ServerPlayerEntity> collection = EntityArgumentType.getPlayers(context, "targets");
                     if (!collection.isEmpty()) {
                         for (ServerPlayerEntity player : collection) {
-                            ((ServerMixinGetter) player).wuhumc$getProcessor().emitActions(actions);
+                            ProcessorManager.getInstance().getProcessor(player).emitActions(actions);
                         }
                     }
                     return collection.size();
@@ -60,7 +56,7 @@ public class ModCommands {
                     Collection<ServerPlayerEntity> collection = EntityArgumentType.getPlayers(context, "targets");
                     if (!collection.isEmpty()) {
                         for (ServerPlayerEntity player : collection) {
-                            ((ServerMixinGetter) player).wuhumc$getProcessor().listen(listener);
+                            ProcessorManager.getInstance().getProcessor(player).listen(listener);
                         }
                     }
                     return collection.size();
@@ -73,8 +69,8 @@ public class ModCommands {
                     Collection<ServerPlayerEntity> collection = EntityArgumentType.getPlayers(context, "targets");
                     if (!collection.isEmpty()) {
                         for (ServerPlayerEntity player : collection) {
-                            ((ServerMixinGetter) player).wuhumc$getProcessor().listen(game.notReadyListener());
-                            ((ServerMixinGetter) player).wuhumc$setCurrentGame(game);
+                            ProcessorManager.getInstance().getProcessor(player).listen(game.notReadyListener());
+                            ProcessorManager.getInstance().getProcessor(player).setCurrentGame(game);
                         }
                     }
                     return collection.size();

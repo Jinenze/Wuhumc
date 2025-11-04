@@ -12,16 +12,6 @@ import java.util.Iterator;
 public class ModServerActions {
     public static final Actions<ServerPlayerEntity> NULL = Actions.<ServerPlayerEntity>getBuilder().action((player, handler) -> false).build();
 
-    public static final Actions<ServerPlayerEntity> respawnMusic = Actions.<ServerPlayerEntity>getBuilder().action((player, handler) -> {
-        player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1f, 0.5f);
-        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 9));
-        return false;
-    }).wait(1).action((player, handler) -> {
-        player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1f, 0.5f);
-        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 9));
-        return false;
-    }).build();
-
     public static final ActionProvider<ServerPlayerEntity> dumbActions = () -> new Iterator<>() {
         @Override
         public boolean hasNext() {
@@ -51,7 +41,7 @@ public class ModServerActions {
 
     public static Actions<ServerPlayerEntity> getSendListenerAction(EventListener<ServerPlayerEntity> listener) {
         return Actions.<ServerPlayerEntity>getBuilder().action((player, handler) -> {
-            ((ServerMixinGetter) player).wuhumc$getProcessor().listen(listener);
+            ProcessorManager.getInstance().getProcessor(player).listen(listener);
             return true;
         }).build();
     }

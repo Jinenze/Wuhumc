@@ -1,6 +1,7 @@
 package xyz.jinenze.wuhumc.action;
 
 import net.minecraft.entity.player.PlayerEntity;
+import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 
 import java.util.ArrayList;
@@ -8,7 +9,8 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 
 public class ActionProcessor<T extends PlayerEntity> {
-    private final T player;
+    private T player;
+    private Game currentGame;
     private final ArrayList<ActionsHandler> handlers = new ArrayList<>();
     private final ArrayList<EventListener<T>> listeners = new ArrayList<>();
 
@@ -28,6 +30,7 @@ public class ActionProcessor<T extends PlayerEntity> {
 
     public void emitActions(ActionProvider<T> actions) {
         handlers.add(new ActionsHandler(actions));
+        Wuhumc.LOGGER.info("123123123");
     }
 
     public void listen(EventListener<T> listener) {
@@ -54,6 +57,21 @@ public class ActionProcessor<T extends PlayerEntity> {
                 return;
             }
         }
+    }
+
+    public Game getCurrentGame() {
+        return currentGame;
+    }
+
+    public void setCurrentGame(Game currentGame) {
+        this.currentGame = currentGame;
+    }
+
+    public void setPlayer(T player) {
+        this.player = player;
+    }
+
+    public ActionProcessor() {
     }
 
     public ActionProcessor(T player) {

@@ -5,6 +5,13 @@
   "item.wuhumc.ready_item": "准备",
   "item.wuhumc.not_ready_item": "取消准备",
   "title.wuhumc.spawn_point": "§6重生点已设置",
-  "message.wuhumc.ready_alert": "§6当所有进入游戏的玩家全部准备时就会开始游戏(包括只有一人时)，请切换到副手并右键确认操作",
-  "message.wuhumc.cancel_ready": "已取消准备"
+  "message.wuhumc.ready_alert": "§6当所有进入游戏的玩家全部准备时就会开始游戏，请切换到副手并右键确认操作",
+  "message.wuhumc.cancel_ready": "已取消准备",
+  "title.wuhumc.game_cancel": "取消",
+  "title.wuhumc.game_countdown_5": "5",
+  "title.wuhumc.game_countdown_4": "4",
+  "title.wuhumc.game_countdown_3": "3",
+  "title.wuhumc.game_countdown_2": "2",
+  "title.wuhumc.game_countdown_1": "1",
+  "title.wuhumc.game_countdown_end": "开"
 }

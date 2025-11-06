@@ -21,20 +21,20 @@ public class ReadyItem extends Item {
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (user instanceof ServerPlayerEntity player) {
             if (hand.equals(Hand.OFF_HAND)) {
-                var processor = ProcessorManager.getInstance().getProcessor(player);
-                var currentGame = ProcessorManager.getInstance().getProcessor(player).getCurrentGame();
+                var processor = ProcessorManager.getInstance().get(player);
+                var currentGame = processor.getCurrentGame();
                 processor.removeListener(currentGame.notReadyListener());
-                processor.listen(currentGame.gameStartListener());
+                processor.emitListener(currentGame.gameStartListener());
                 var inventory = player.getInventory();
                 inventory.removeStack(40);
                 inventory.insertStack(40, new ItemStack(ModItems.NOT_READY_ITEM));
                 for (ServerPlayerEntity player1 : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
-                    if (ProcessorManager.getInstance().getProcessor(player1).emitEvent(currentGame.onReadyEvent())) {
+                    if (ProcessorManager.getInstance().get(player1).event(currentGame.onReadyEvent())) {
                         return ActionResult.PASS;
                     }
                 }
                 for (ServerPlayerEntity player1 : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
-                    ProcessorManager.getInstance().getProcessor(player1).emitEvent(currentGame.gameStartEvent());
+                    ProcessorManager.getInstance().get(player1).event(currentGame.gameStartEvent());
                 }
             } else {
                 player.sendMessage(Text.translatable("message.wuhumc.ready_alert"), true);

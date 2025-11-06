@@ -20,10 +20,10 @@ public class NotReadyItem extends Item {
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (user instanceof ServerPlayerEntity player) {
-            var processor = ProcessorManager.getInstance().getProcessor(player);
-            var currentGame = ProcessorManager.getInstance().getProcessor(player).getCurrentGame();
+            var processor = ProcessorManager.getInstance().get(player);
+            var currentGame = ProcessorManager.getInstance().get(player).getCurrentGame();
             processor.removeListener(currentGame.gameStartListener());
-            processor.listen(currentGame.notReadyListener());
+            processor.emitListener(currentGame.notReadyListener());
             var inventory = player.getInventory();
             if (hand.equals(Hand.MAIN_HAND)) {
                 inventory.removeStack(inventory.getSelectedSlot());

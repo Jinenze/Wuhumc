@@ -9,23 +9,34 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.jinenze.wuhumc.action.Game;
+import xyz.jinenze.wuhumc.action.ActionProcessor;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
+import xyz.jinenze.wuhumc.action.ServerMixinGetter;
+import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 
 @Mixin(ServerPlayerEntity.class)
-abstract class ServerPlayerEntityMixin extends PlayerEntity {
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void playerTickInject(CallbackInfo ci) {
-        ProcessorManager.getInstance().getProcessor((ServerPlayerEntity)(Object)this).tick();
-    }
+abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerMixinGetter {
+    @Unique
+    private final ActionProcessor<ServerPlayerEntity> processor = ProcessorManager.getInstance().createOrRefresh((ServerPlayerEntity) (Object) this);
+
+//    @Inject(method = "tick", at = @At("TAIL"))
+//    private void playerTickInject(CallbackInfo ci) {
+//        ProcessorManager.getInstance().get((ServerPlayerEntity) (Object) this).tick();
+//    }
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void initInject(MinecraftServer server, ServerWorld world, GameProfile profile, SyncedClientOptions clientOptions, CallbackInfo ci) {
-        ProcessorManager.getInstance().setPlayer((ServerPlayerEntity) (Object) this);
+        processor.emitActions(ModServerActions.RESPAWN_FLY);
+    }
+
+    @Override
+    public ActionProcessor<ServerPlayerEntity> wuhumc$getProcessor() {
+        return processor;
     }
 
     @Shadow
@@ -43,6 +54,6 @@ abstract class ServerPlayerEntityMixin extends PlayerEntity {
     @Override
     protected void tickInVoid() {
         this.kill(this.getEntityWorld());
-        ProcessorManager.getInstance().getProcessor((ServerPlayerEntity)(Object)this).emitEvent(ModServerEvents.FALL_VOID);
+        ProcessorManager.getInstance().get((ServerPlayerEntity) (Object) this).event(ModServerEvents.PLAYER_FALL_VOID);
     }
 }

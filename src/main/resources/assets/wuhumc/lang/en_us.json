@@ -6,5 +6,12 @@
   "item.wuhumc.not_ready_item": "Not Ready",
   "title.wuhumc.spawn_point": "§6Spawn point",
   "message.wuhumc.ready_alert": "Switch to offhand",
-  "message.wuhumc.cancel_ready": "Ready state canceled"
+  "message.wuhumc.cancel_ready": "Ready state canceled",
+  "title.wuhumc.game_cancel": "cancel",
+  "title.wuhumc.game_countdown_5": "5",
+  "title.wuhumc.game_countdown_4": "4",
+  "title.wuhumc.game_countdown_3": "3",
+  "title.wuhumc.game_countdown_2": "2",
+  "title.wuhumc.game_countdown_1": "1",
+  "title.wuhumc.game_countdown_end": "start"
 }

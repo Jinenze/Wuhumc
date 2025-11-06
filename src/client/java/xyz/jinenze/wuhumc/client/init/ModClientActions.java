@@ -2,6 +2,7 @@ package xyz.jinenze.wuhumc.client.init;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.sound.SoundEvents;
+import xyz.jinenze.wuhumc.action.Action;
 import xyz.jinenze.wuhumc.action.Actions;
 
 public class ModClientActions {
@@ -72,7 +73,7 @@ public class ModClientActions {
         player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), 0.6f, 1.2599210498948732f);
         player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 0.6f, 0.9438743126816935f);
         player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 0.6f, 0.9438743126816935f);
-        return false;
+        return true;
     }).build();
 
     public static void register() {

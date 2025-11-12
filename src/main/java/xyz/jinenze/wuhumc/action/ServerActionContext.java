@@ -1,8 +1,9 @@
 package xyz.jinenze.wuhumc.action;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
 
-public record ServerActionContext(List<PlayerProcessor<ServerPlayerEntity>> processors) {
+public record ServerActionContext(List<PlayerProcessor<ServerPlayer>> processors) {
 }

@@ -1,27 +1,26 @@
 package xyz.jinenze.wuhumc.client.mixin;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.recipebook.ClientRecipeBook;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.stat.StatHandler;
-import net.minecraft.util.PlayerInput;
+import net.minecraft.client.ClientRecipeBook;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.stats.StatsCounter;
+import net.minecraft.world.entity.player.Input;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.PlayerProcessor;
 import xyz.jinenze.wuhumc.client.WuhumcClient;
 import xyz.jinenze.wuhumc.client.action.ClientMixinGetter;
 import xyz.jinenze.wuhumc.client.init.ModClientActions;
 
-@Mixin(ClientPlayerEntity.class)
+@Mixin(LocalPlayer.class)
 public abstract class ClientPlayerEntityMixin implements ClientMixinGetter {
     @Unique
-    private static final PlayerProcessor<ClientPlayerEntity> processor = new PlayerProcessor<>();
+    private static final PlayerProcessor<LocalPlayer> processor = new PlayerProcessor<>();
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void playerTickInject(CallbackInfo ci) {
@@ -29,15 +28,15 @@ public abstract class ClientPlayerEntityMixin implements ClientMixinGetter {
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
-    private void initInject(MinecraftClient client, ClientWorld world, ClientPlayNetworkHandler networkHandler, StatHandler stats, ClientRecipeBook recipeBook, PlayerInput lastPlayerInput, boolean lastSprinting, CallbackInfo ci) {
-        processor.setPlayer((ClientPlayerEntity) (Object) this);
+    private void initInject(Minecraft minecraft, ClientLevel clientLevel, ClientPacketListener clientPacketListener, StatsCounter statsCounter, ClientRecipeBook clientRecipeBook, Input input, boolean bl, CallbackInfo ci) {
+        processor.setPlayer((LocalPlayer) (Object) this);
         if (WuhumcClient.config.respawnMusic) {
             processor.emitActions(ModClientActions.respawnMusic);
         }
     }
 
     @Override
-    public PlayerProcessor<ClientPlayerEntity> wuhumc$getProcessor() {
+    public PlayerProcessor<LocalPlayer> wuhumc$getProcessor() {
         return processor;
     }
 }

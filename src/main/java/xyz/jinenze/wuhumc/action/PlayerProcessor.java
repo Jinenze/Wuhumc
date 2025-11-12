@@ -1,11 +1,11 @@
 package xyz.jinenze.wuhumc.action;
 
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import xyz.jinenze.wuhumc.game.Game;
 import xyz.jinenze.wuhumc.init.ModGames;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 
-public class PlayerProcessor<T extends PlayerEntity> extends Processor<T> {
+public class PlayerProcessor<T extends Player> extends Processor<T> {
     private T player;
     private Game currentGame = ModGames.NULL;
     private int score = 0;

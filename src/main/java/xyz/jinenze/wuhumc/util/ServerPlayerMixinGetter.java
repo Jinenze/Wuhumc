@@ -1,8 +1,8 @@
 package xyz.jinenze.wuhumc.util;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.action.PlayerProcessor;
 
 public interface ServerPlayerMixinGetter {
-    PlayerProcessor<ServerPlayerEntity> wuhumc$getProcessor();
+    PlayerProcessor<ServerPlayer> wuhumc$getProcessor();
 }

@@ -2,7 +2,7 @@
 //
 //import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 //import net.minecraft.particle.ParticleTypes;
-//import net.minecraft.server.network.ServerPlayerEntity;
+//import net.minecraft.server.level.ServerPlayer;
 //import net.minecraft.sound.SoundCategory;
 //import net.minecraft.sound.SoundEvents;
 //
@@ -16,11 +16,11 @@
 //        });
 //    }
 //
-//    public static void sendJumpYPowerSetRequest(ServerPlayerEntity player, Double power) {
+//    public static void sendJumpYPowerSetRequest(ServerPlayer player, Double power) {
 //        ServerPlayNetworking.getSender(player).sendPacket(Packets.JumpYPowerSetRequest.ID, new Packets.JumpYPowerSetRequest(power).write());
 //    }
 //
-//    public static void sendJumpXZPowerSetRequest(ServerPlayerEntity player, Double power) {
+//    public static void sendJumpXZPowerSetRequest(ServerPlayer player, Double power) {
 //        ServerPlayNetworking.getSender(player).sendPacket(Packets.JumpXZPowerSetRequest.ID, new Packets.JumpXZPowerSetRequest(power).write());
 //    }
 //}

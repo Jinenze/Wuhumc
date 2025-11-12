@@ -1,13 +1,14 @@
 package xyz.jinenze.wuhumc.item;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Rarity;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import xyz.jinenze.wuhumc.action.PlayerProcessor;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.action.ServerActionContext;
@@ -19,32 +20,32 @@ import java.util.Collections;
 import java.util.List;
 
 public class ReadyItem extends Item {
-    public ReadyItem(Settings settings) {
-        super(settings.fireproof().rarity(Rarity.EPIC).maxCount(1));
+    public ReadyItem(Properties properties) {
+        super(properties.fireResistant().rarity(Rarity.EPIC).stacksTo(1));
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (user instanceof ServerPlayerEntity player) {
-            var processor = ProcessorManager.get(player);
+    public @NotNull InteractionResult use(Level level, Player player, InteractionHand interactionHand) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            var processor = ProcessorManager.get(serverPlayer);
             var currentGame = processor.getCurrentGame();
             processor.removeListener(currentGame.getNotReadyListener());
-            var inventory = player.getInventory();
-            inventory.removeStack(inventory.getSelectedSlot());
-            inventory.insertStack(inventory.getSelectedSlot(), new ItemStack(ModItems.NOT_READY_ITEM));
-            for (ServerPlayerEntity anotherPlayer : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
+            var inventory = serverPlayer.getInventory();
+            inventory.removeItemNoUpdate(inventory.getSelectedSlot());
+            inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.NOT_READY_ITEM));
+            for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
                 if (ProcessorManager.get(anotherPlayer).event(currentGame.getOnReadyEvent())) {
-                    return ActionResult.PASS;
+                    return InteractionResult.PASS;
                 }
             }
-            List<PlayerProcessor<ServerPlayerEntity>> processors = new ArrayList<>();
-            for (ServerPlayerEntity anotherPlayer : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
-                if (ProcessorManager.get(anotherPlayer).getCurrentGame().equals(ProcessorManager.get(player).getCurrentGame())) {
+            List<PlayerProcessor<ServerPlayer>> processors = new ArrayList<>();
+            for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
+                if (ProcessorManager.get(anotherPlayer).getCurrentGame().equals(ProcessorManager.get(serverPlayer).getCurrentGame())) {
                     processors.add(ProcessorManager.get(anotherPlayer));
                 }
             }
             ProcessorManager.getServerProcessor().emitActions(new ServerActionContext(Collections.unmodifiableList(processors)), ModServerActions.GAME_COUNTDOWN);
         }
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 }

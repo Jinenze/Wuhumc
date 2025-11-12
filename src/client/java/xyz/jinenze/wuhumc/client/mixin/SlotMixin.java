@@ -1,8 +1,8 @@
 package xyz.jinenze.wuhumc.client.mixin;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,11 +13,11 @@ import xyz.jinenze.wuhumc.init.ModItems;
 @Mixin(Slot.class)
 public abstract class SlotMixin {
     @Shadow
-    public abstract ItemStack getStack();
+    public abstract ItemStack getItem();
 
-    @Inject(method = "canTakeItems", at = @At("HEAD"), cancellable = true)
-    private void canTakeItemsInject(PlayerEntity playerEntity, CallbackInfoReturnable<Boolean> cir) {
-        var itemStack = this.getStack();
+    @Inject(method = "mayPickup", at = @At("HEAD"), cancellable = true)
+    private void canTakeItemsInject(Player playerEntity, CallbackInfoReturnable<Boolean> cir) {
+        var itemStack = this.getItem();
         cir.setReturnValue(playerEntity.isCreative() || !(itemStack.getItem().equals(ModItems.READY_ITEM) || itemStack.getItem().equals(ModItems.NOT_READY_ITEM)));
     }
 }

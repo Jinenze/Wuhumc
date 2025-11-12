@@ -1,7 +1,6 @@
 package xyz.jinenze.wuhumc.client.init;
 
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.client.WuhumcClient;
 import xyz.jinenze.wuhumc.client.action.ClientMixinGetter;
 

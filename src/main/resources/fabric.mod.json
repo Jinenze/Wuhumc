@@ -1,11 +1,13 @@
 {
   "schemaVersion": 1,
-  "id": "wuhumc",
+  "id": "${mod_id}",
   "version": "${version}",
   "name": "Wuhumc",
-  "description": "",
-  "authors": [],
-  "contact": {},
+  "description": "123",
+  "authors": ["Jinenze"],
+  "contact": {
+    "sources": "https://github.com/Jinenze/Wuhumc"
+  },
   "license": "MIT",
   "icon": "icon.png",
   "environment": "*",

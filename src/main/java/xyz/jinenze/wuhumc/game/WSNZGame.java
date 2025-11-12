@@ -1,6 +1,6 @@
 package xyz.jinenze.wuhumc.game;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.action.ActionProvider;
 import xyz.jinenze.wuhumc.action.Actions;
 import xyz.jinenze.wuhumc.action.EventListener;
@@ -19,7 +19,7 @@ public class WSNZGame extends Game {
     ));
     private Iterator<ActionProvider<ServerActionContext>> iterator;
 
-    public WSNZGame(ModServerEvents onReadyEvent, Actions<ServerActionContext> gameStartAction, EventListener<ServerPlayerEntity> notReadyListener) {
+    public WSNZGame(ModServerEvents onReadyEvent, Actions<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
         super(onReadyEvent, gameStartAction, notReadyListener);
         reroll();
     }

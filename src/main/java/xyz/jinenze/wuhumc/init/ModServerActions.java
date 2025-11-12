@@ -1,22 +1,22 @@
 package xyz.jinenze.wuhumc.init;
 
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.passive.TurtleEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
-import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.animal.Turtle;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.util.PlayerItemUtil;
@@ -25,51 +25,51 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 
 public class ModServerActions {
-    public static final Actions<ServerPlayerEntity> NULL_PLAYER = Actions.<ServerPlayerEntity>getBuilder().action((player, handler) -> true).build();
+    public static final Actions<ServerPlayer> NULL_PLAYER = Actions.<ServerPlayer>getBuilder().action((player, handler) -> true).build();
     public static final Actions<ServerActionContext> NULL_WORLD = Actions.<ServerActionContext>getBuilder().action((player, handler) -> true).build();
 
-    public static final Actions<ServerPlayerEntity> test = Actions.<ServerPlayerEntity>getBuilder().action((player, handler) -> {
-        player.getEntityWorld().getServer().getCommandManager().parseAndExecute(player.getCommandSource(), "/me LLLLLL");
+    public static final Actions<ServerPlayer> test = Actions.<ServerPlayer>getBuilder().action((player, handler) -> {
+        player.level().getServer().getCommands().performPrefixedCommand(player.createCommandSourceStack(), "/me LLLLLL");
         return true;
     }).build();
 
-    public static final ActionProvider<ServerPlayerEntity> dumbActions = () -> new Iterator<>() {
+    public static final ActionProvider<ServerPlayer> dumbActions = () -> new Iterator<>() {
         @Override
         public boolean hasNext() {
             return true;
         }
 
         @Override
-        public Action<ServerPlayerEntity> next() {
+        public Action<ServerPlayer> next() {
             return (player, handler) -> {
-                player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1f, 0.5f);
-                player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 9));
+                player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 1f, 0.5f);
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 9));
                 handler.setDelay(1);
                 return false;
             };
         }
     };
 
-    private static void ejectPlayer(ServerPlayerEntity player) {
+    private static void ejectPlayer(ServerPlayer player) {
         var config = Wuhumc.config.GAME_POSITION_WSNZ;
-        player.teleport(config.x, config.y, config.z, false);
-        player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player.getId(), new Vec3d(Wuhumc.config.game_start_player_eject_direction ? 1 : -1, 0.5, 0)));
+        player.teleportTo(config.x, config.y, config.z);
+        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(Wuhumc.config.game_start_player_eject_direction ? 1 : -1, 0.5, 0)));
         Wuhumc.config.game_start_player_eject_direction = !Wuhumc.config.game_start_player_eject_direction;
     }
 
-    public static final Actions<ServerPlayerEntity> RESPAWN_FLY = Actions.<ServerPlayerEntity>getBuilder().action((player, handler) -> {
+    public static final Actions<ServerPlayer> RESPAWN_FLY = Actions.<ServerPlayer>getBuilder().action((player, handler) -> {
         if (Wuhumc.config.respawnFlyEnabled) {
-            player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player.getId(), new Vec3d(0, 10, 0)));
+            player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(0, 10, 0)));
             return false;
         }
         return true;
     }).wait(65).action((player, handler) -> {
-        if (player.getRespawn() != null) {
-            var pos = player.getRespawn().respawnData().getPos().toBottomCenterPos();
-            player.teleport(pos.getX(), pos.getY(), pos.getZ(), false);
+        if (player.getRespawnConfig() != null) {
+            var pos = player.getRespawnConfig().respawnData().pos().getBottomCenter();
+            player.teleportTo(pos.x(), pos.y(), pos.z());
         } else {
-            var pos = player.getEntityWorld().getSpawnPoint().getPos();
-            player.teleport(pos.getX(), pos.getY(), pos.getZ(), false);
+            var pos = player.level().getRespawnData().pos().getBottomCenter();
+            player.teleportTo(pos.x(), pos.y(), pos.z());
         }
         return true;
     }).build();
@@ -84,25 +84,25 @@ public class ModServerActions {
             }
         }
 
-        var world = maxProcessor.getPlayer().getEntityWorld();
-        if (maxProcessor.getPlayer().getInventory().getStack(EquipmentSlot.HEAD.getOffsetEntitySlotId(36)).getItem().equals(Items.TURTLE_HELMET)) {
-            var turtle = new TurtleEntity(EntityType.TURTLE, world);
-            turtle.setCustomName(Text.literal(maxProcessor.getPlayer().getGameProfile().name()));
-            turtle.setPosition(world.getSpawnPoint().getPos().toBottomCenterPos());
-            turtle.addStatusEffect(new StatusEffectInstance(StatusEffects.HEALTH_BOOST, -1, 255, false, false));
-            world.spawnEntity(turtle);
+        var level = maxProcessor.getPlayer().level();
+        if (maxProcessor.getPlayer().getInventory().getItem(EquipmentSlot.HEAD.getIndex(36)).getItem().equals(Items.TURTLE_HELMET)) {
+            var turtle = new Turtle(EntityType.TURTLE, level);
+            turtle.setCustomName(Component.literal(maxProcessor.getPlayer().getGameProfile().name()));
+            turtle.setPos(level.getRespawnData().pos().getBottomCenter());
+            turtle.addEffect(new MobEffectInstance(MobEffects.HEALTH_BOOST, -1, 255, false, false));
+            level.addFreshEntity(turtle);
         } else {
             var itemStack = new ItemStack(Items.TURTLE_HELMET);
-            itemStack.addEnchantment(world.createCommandRegistryWrapper(Enchantments.BINDING_CURSE.getRegistryRef()).getOrThrow(Enchantments.BINDING_CURSE), 1);
-            maxProcessor.getPlayer().getInventory().setStack(EquipmentSlot.HEAD.getOffsetEntitySlotId(36), itemStack);
+            itemStack.enchant(level.registryAccess().lookupOrThrow(Enchantments.BINDING_CURSE.registryKey()).getOrThrow(Enchantments.BINDING_CURSE), 1);
+            maxProcessor.getPlayer().getInventory().setItem(EquipmentSlot.HEAD.getIndex(36), itemStack);
         }
-        for (ServerPlayerEntity player : maxProcessor.getPlayer().getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : maxProcessor.getPlayer().level().getServer().getPlayerList().getPlayers()) {
             if (ProcessorManager.get(player).getCurrentGame().equals(maxProcessor.getCurrentGame())) {
                 ProcessorManager.get(player).setCurrentGame(ModGames.NULL);
-                player.setSpawnPoint(null, false);
-                var pos = world.getSpawnPoint().getPos();
-                player.changeGameMode(GameMode.ADVENTURE);
-                player.teleport(pos.getX(), pos.getY(), pos.getZ(), false);
+                player.setRespawnPosition(null, false);
+                var pos = level.getRespawnData().pos().getBottomCenter();
+                player.setGameMode(GameType.ADVENTURE);
+                player.teleportTo(pos.x(), pos.y(), pos.z());
             }
         }
         maxProcessor.getCurrentGame().gameEnd();
@@ -112,8 +112,8 @@ public class ModServerActions {
     public static final Actions<ServerActionContext> WSNZ_1 = Actions.<ServerActionContext>getBuilder().action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.wuhumc.game_wsnz_1")));
-            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_HAT, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_1")));
+            player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             processor.emitListener(ModEventListeners.PLAYER_FALL_VOID_WSNZ_1);
         }
         return false;
@@ -128,22 +128,22 @@ public class ModServerActions {
     public static final Actions<ServerActionContext> WSMZ_REFRESH = Actions.<ServerActionContext>getBuilder().action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.wuhumc.game_wsnz_refresh_1")));
-            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_HAT, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_1")));
+            player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }).wait(10).action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.wuhumc.game_wsnz_refresh_2")));
-            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_HAT, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_2")));
+            player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }).wait(10).action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.wuhumc.game_wsnz_refresh_3")));
-            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_HAT, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_3")));
+            player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }).wait(30).action((context, handler) -> {
@@ -186,15 +186,15 @@ public class ModServerActions {
         for (var processor : context.processors()) {
             if (processor.event(processor.getCurrentGame().getOnReadyEvent())) {
                 for (var anotherProcessor : context.processors()) {
-                    anotherProcessor.getPlayer().networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.wuhumc.game_cancel")));
+                    anotherProcessor.getPlayer().connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_cancel")));
                 }
                 return true;
             }
         }
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable(key)));
-            player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_HAT, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable(key)));
+            player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }
@@ -203,8 +203,8 @@ public class ModServerActions {
     ).action((context, handler) -> {
                 for (var processor : context.processors()) {
                     var player = processor.getPlayer();
-                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.translatable("title.wuhumc.game_countdown_5")));
-                    player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.BLOCK_NOTE_BLOCK_HAT, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                    player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_countdown_5")));
+                    player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
                 }
                 return false;
             }

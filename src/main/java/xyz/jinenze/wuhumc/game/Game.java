@@ -1,6 +1,6 @@
 package xyz.jinenze.wuhumc.game;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.action.Actions;
 import xyz.jinenze.wuhumc.action.EventListener;
 import xyz.jinenze.wuhumc.action.ServerActionContext;
@@ -10,9 +10,9 @@ public abstract class Game {
     private boolean running;
     private final ModServerEvents onReadyEvent;
     private final Actions<ServerActionContext> gameStartAction;
-    private final EventListener<ServerPlayerEntity> notReadyListener;
+    private final EventListener<ServerPlayer> notReadyListener;
 
-    public Game(ModServerEvents onReadyEvent, Actions<ServerActionContext> gameStartAction, EventListener<ServerPlayerEntity> notReadyListener) {
+    public Game(ModServerEvents onReadyEvent, Actions<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
         this.onReadyEvent = onReadyEvent;
         this.gameStartAction = gameStartAction;
         this.notReadyListener = notReadyListener;
@@ -38,7 +38,7 @@ public abstract class Game {
         return gameStartAction;
     }
 
-    public EventListener<ServerPlayerEntity> getNotReadyListener() {
+    public EventListener<ServerPlayer> getNotReadyListener() {
         return notReadyListener;
     }
 }

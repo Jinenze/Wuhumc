@@ -1,7 +1,5 @@
 package xyz.jinenze.wuhumc.action;
 
-import net.minecraft.entity.player.PlayerEntity;
-
-public interface Action<T extends PlayerEntity> {
-    boolean run(T player, ActionProcessor<T>.ActionsHandler handler);
+public interface Action<T> {
+    boolean run(T input, ActionsHandler<T> handler);
 }

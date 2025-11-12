@@ -13,21 +13,16 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.jinenze.wuhumc.action.ActionProcessor;
+import xyz.jinenze.wuhumc.action.PlayerProcessor;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
-import xyz.jinenze.wuhumc.action.ServerMixinGetter;
 import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
+import xyz.jinenze.wuhumc.util.ServerPlayerMixinGetter;
 
 @Mixin(ServerPlayerEntity.class)
-abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerMixinGetter {
+abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerMixinGetter {
     @Unique
-    private final ActionProcessor<ServerPlayerEntity> processor = ProcessorManager.getInstance().createOrRefresh((ServerPlayerEntity) (Object) this);
-
-//    @Inject(method = "tick", at = @At("TAIL"))
-//    private void playerTickInject(CallbackInfo ci) {
-//        ProcessorManager.getInstance().get((ServerPlayerEntity) (Object) this).tick();
-//    }
+    private final PlayerProcessor<ServerPlayerEntity> processor = ProcessorManager.createOrRefresh((ServerPlayerEntity) (Object) this);
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void initInject(MinecraftServer server, ServerWorld world, GameProfile profile, SyncedClientOptions clientOptions, CallbackInfo ci) {
@@ -35,7 +30,7 @@ abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerMix
     }
 
     @Override
-    public ActionProcessor<ServerPlayerEntity> wuhumc$getProcessor() {
+    public PlayerProcessor<ServerPlayerEntity> wuhumc$getProcessor() {
         return processor;
     }
 
@@ -54,6 +49,6 @@ abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerMix
     @Override
     protected void tickInVoid() {
         this.kill(this.getEntityWorld());
-        ProcessorManager.getInstance().get((ServerPlayerEntity) (Object) this).event(ModServerEvents.PLAYER_FALL_VOID);
+        ProcessorManager.get((ServerPlayerEntity) (Object) this).event(ModServerEvents.PLAYER_FALL_VOID);
     }
 }

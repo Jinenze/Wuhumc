@@ -24,8 +24,9 @@ public abstract class MinecraftClientMixin {
 
     @Inject(method = "handleInputEvents", at = @At("HEAD"))
     private void handleInputEventsInject(CallbackInfo ci) {
-        if (player.getInventory().getSelectedStack().getItem().equals(ModItems.READY_ITEM) || player.getInventory().getSelectedStack().getItem().equals(ModItems.READY_ITEM)) {
+        if (player.getInventory().getSelectedStack().getItem().equals(ModItems.READY_ITEM) || player.getInventory().getSelectedStack().getItem().equals(ModItems.NOT_READY_ITEM)) {
             ((KeyBindingInvoker) this.options.dropKey).wuhumc$reset();
+            ((KeyBindingInvoker) this.options.swapHandsKey).wuhumc$reset();
         }
     }
 }

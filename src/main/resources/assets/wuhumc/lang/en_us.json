@@ -13,5 +13,9 @@
   "title.wuhumc.game_countdown_3": "3",
   "title.wuhumc.game_countdown_2": "2",
   "title.wuhumc.game_countdown_1": "1",
-  "title.wuhumc.game_countdown_end": "start"
+  "title.wuhumc.game_countdown_end": "start",
+  "title.wuhumc.game_wsnz_refresh_1": ".",
+  "title.wuhumc.game_wsnz_refresh_2": "..",
+  "title.wuhumc.game_wsnz_refresh_3": "...",
+  "title.wuhumc.game_wsnz_1": "jump into void"
 }

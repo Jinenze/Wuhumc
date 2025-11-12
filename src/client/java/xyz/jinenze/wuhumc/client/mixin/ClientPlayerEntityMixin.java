@@ -12,14 +12,16 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.jinenze.wuhumc.action.ActionProcessor;
+import xyz.jinenze.wuhumc.Wuhumc;
+import xyz.jinenze.wuhumc.action.PlayerProcessor;
+import xyz.jinenze.wuhumc.client.WuhumcClient;
 import xyz.jinenze.wuhumc.client.action.ClientMixinGetter;
 import xyz.jinenze.wuhumc.client.init.ModClientActions;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin implements ClientMixinGetter {
     @Unique
-    private static final ActionProcessor<ClientPlayerEntity> processor = new ActionProcessor<>();
+    private static final PlayerProcessor<ClientPlayerEntity> processor = new PlayerProcessor<>();
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void playerTickInject(CallbackInfo ci) {
@@ -29,11 +31,13 @@ public abstract class ClientPlayerEntityMixin implements ClientMixinGetter {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void initInject(MinecraftClient client, ClientWorld world, ClientPlayNetworkHandler networkHandler, StatHandler stats, ClientRecipeBook recipeBook, PlayerInput lastPlayerInput, boolean lastSprinting, CallbackInfo ci) {
         processor.setPlayer((ClientPlayerEntity) (Object) this);
-        processor.emitActions(ModClientActions.respawnMusic);
+        if (WuhumcClient.config.respawnMusic) {
+            processor.emitActions(ModClientActions.respawnMusic);
+        }
     }
 
     @Override
-    public ActionProcessor<ClientPlayerEntity> wuhumc$getProcessor() {
+    public PlayerProcessor<ClientPlayerEntity> wuhumc$getProcessor() {
         return processor;
     }
 }

@@ -2,7 +2,6 @@ package xyz.jinenze.wuhumc.client.init;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.sound.SoundEvents;
-import xyz.jinenze.wuhumc.action.Action;
 import xyz.jinenze.wuhumc.action.Actions;
 
 public class ModClientActions {

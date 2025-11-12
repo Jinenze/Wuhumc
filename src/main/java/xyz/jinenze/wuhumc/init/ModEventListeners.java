@@ -11,7 +11,7 @@ public class ModEventListeners {
     });
 
     public static final EventListener<ServerPlayerEntity> PLAYER_WSNZ_READY_PLAYER_NOT_READY = new EventListener<>(ModServerEvents.PLAYER_WSNZ_READY, player -> {
-        ProcessorManager.getInstance().get(player).emitListener(new Supplier<>() {
+        ProcessorManager.get(player).emitListener(new Supplier<>() {
             @Override
             public EventListener<ServerPlayerEntity> get() {
                 return PLAYER_WSNZ_READY_PLAYER_NOT_READY;
@@ -19,8 +19,8 @@ public class ModEventListeners {
         });
     });
 
-    public static final EventListener<ServerPlayerEntity> GAME_WSNZ_START_COUNTDOWN = new EventListener<>(ModServerEvents.GAME_WSNZ_START, player -> {
-        ProcessorManager.getInstance().get(player).emitActions(ModServerActions.GAME_COUNTDOWN);
+    public static final EventListener<ServerPlayerEntity> PLAYER_FALL_VOID_WSNZ_1 = new EventListener<>(ModServerEvents.PLAYER_FALL_VOID, player -> {
+       ProcessorManager.get(player).addScore(1);
     });
 
     public static void register() {

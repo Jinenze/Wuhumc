@@ -20,18 +20,12 @@ public class NotReadyItem extends Item {
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (user instanceof ServerPlayerEntity player) {
-            var processor = ProcessorManager.getInstance().get(player);
-            var currentGame = ProcessorManager.getInstance().get(player).getCurrentGame();
-            processor.removeListener(currentGame.gameStartListener());
-            processor.emitListener(currentGame.notReadyListener());
+            var processor = ProcessorManager.get(player);
+            var currentGame = ProcessorManager.get(player).getCurrentGame();
+            processor.emitListener(currentGame.getNotReadyListener());
             var inventory = player.getInventory();
-            if (hand.equals(Hand.MAIN_HAND)) {
-                inventory.removeStack(inventory.getSelectedSlot());
-                inventory.insertStack(inventory.getSelectedSlot(), new ItemStack(ModItems.READY_ITEM));
-            } else {
-                inventory.removeStack(40);
-                inventory.insertStack(40, new ItemStack(ModItems.READY_ITEM));
-            }
+            inventory.removeStack(inventory.getSelectedSlot());
+            inventory.insertStack(inventory.getSelectedSlot(), new ItemStack(ModItems.READY_ITEM));
             player.sendMessage(Text.translatable("message.wuhumc.cancel_ready"), true);
         }
         return ActionResult.PASS;

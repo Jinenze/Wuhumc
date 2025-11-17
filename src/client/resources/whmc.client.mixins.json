@@ -4,17 +4,15 @@
   "package": "xyz.jinenze.wuhumc.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ClientPlayerEntityMixin",
-    "KeyBindingInvoker",
-    "MinecraftClientMixin"
+    "KeyMappingInvoker",
+    "LocalPlayerMixin",
+    "MinecraftMixin",
+    "SlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  },
-  "mixins": [
-    "SlotMixin"
-  ]
+  }
 }

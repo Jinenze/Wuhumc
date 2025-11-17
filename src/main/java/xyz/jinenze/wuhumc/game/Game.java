@@ -1,16 +1,16 @@
 package xyz.jinenze.wuhumc.game;
 
 import net.minecraft.server.level.ServerPlayer;
-import xyz.jinenze.wuhumc.action.Actions;
-import xyz.jinenze.wuhumc.action.EventListener;
-import xyz.jinenze.wuhumc.action.ServerActionContext;
+import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 
-public abstract class Game {
+public class Game {
     private boolean running;
     private final ModServerEvents onReadyEvent;
     private final Actions<ServerActionContext> gameStartAction;
     private final EventListener<ServerPlayer> notReadyListener;
+
+    public boolean gameStartPlayerEjectDirection = false;
 
     public Game(ModServerEvents onReadyEvent, Actions<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
         this.onReadyEvent = onReadyEvent;
@@ -28,6 +28,10 @@ public abstract class Game {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public void addScore(ServerPlayer player) {
+        ProcessorManager.get(player).addScore(1);
     }
 
     public ModServerEvents getOnReadyEvent() {

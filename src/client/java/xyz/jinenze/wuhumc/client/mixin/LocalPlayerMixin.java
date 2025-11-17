@@ -18,7 +18,7 @@ import xyz.jinenze.wuhumc.client.action.ClientMixinGetter;
 import xyz.jinenze.wuhumc.client.init.ModClientActions;
 
 @Mixin(LocalPlayer.class)
-public abstract class ClientPlayerEntityMixin implements ClientMixinGetter {
+public abstract class LocalPlayerMixin implements ClientMixinGetter {
     @Unique
     private static final PlayerProcessor<LocalPlayer> processor = new PlayerProcessor<>();
 
@@ -30,7 +30,7 @@ public abstract class ClientPlayerEntityMixin implements ClientMixinGetter {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void initInject(Minecraft minecraft, ClientLevel clientLevel, ClientPacketListener clientPacketListener, StatsCounter statsCounter, ClientRecipeBook clientRecipeBook, Input input, boolean bl, CallbackInfo ci) {
         processor.setPlayer((LocalPlayer) (Object) this);
-        if (WuhumcClient.config.respawnMusic) {
+        if (WuhumcClient.config.respawn_music) {
             processor.emitActions(ModClientActions.respawnMusic);
         }
     }

@@ -1,7 +1,5 @@
 package xyz.jinenze.wuhumc.init;
 
-import com.nimbusds.oauth2.sdk.id.Identifier;
-import net.fabricmc.fabric.api.item.v1.FabricItem;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
@@ -41,11 +39,8 @@ public class ModItems {
 
     private static Item registerItem(String name, Function<Item.Properties, Item> itemFactory) {
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Wuhumc.MOD_ID, name));
-
         Item item = itemFactory.apply(new Item.Properties().setId(itemKey));
-
         Registry.register(BuiltInRegistries.ITEM, itemKey, item);
-
         return item;
     }
 }

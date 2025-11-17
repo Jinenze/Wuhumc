@@ -3,10 +3,13 @@ package xyz.jinenze.wuhumc.init;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.ActionProvider;
@@ -14,11 +17,12 @@ import xyz.jinenze.wuhumc.action.EventListener;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.config.ServerConfig;
 import xyz.jinenze.wuhumc.game.Game;
+import xyz.jinenze.wuhumc.network.Payloads;
 
 import java.util.Collection;
 
-import static net.minecraft.commands.Commands.literal;
 import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class ModCommands {
     public static void register() {
@@ -27,6 +31,12 @@ public class ModCommands {
                 ).then(literal("action").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
                         .then(literal("dumbactions").then(emitActions(ModServerActions.dumbActions)))
                         .then(literal("test").then(emitActions(ModServerActions.test)))
+                        .then(literal("newmoniter").executes(context -> {
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getXRot()));
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getYRot()));
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getYHeadRot()));
+                            return 1;
+                        }))
                         .then(literal("clear").then(argument("targets", EntityArgument.players())
                                 .executes(context -> {
                                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
@@ -36,7 +46,10 @@ public class ModCommands {
                                         }
                                     }
                                     return collection.size();
-                                })))
+                                })).then(literal("server").executes(context -> {
+                            ProcessorManager.getServerProcessor().clearActions();
+                            return 1;
+                        })))
                 ).then(literal("listener").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
                         .then(literal("nswznotready").then(listen(ModEventListeners.PLAYER_WSNZ_READY_PLAYER_NOT_READY)))
                         .then(literal("clear").then(argument("targets", EntityArgument.players())
@@ -48,15 +61,24 @@ public class ModCommands {
                                         }
                                     }
                                     return collection.size();
-                                })))
+                                })).then(literal("server").executes(context -> {
+                            ProcessorManager.getServerProcessor().clearListeners();
+                            return 1;
+                        })))
                 ).then(literal("game").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
                         .then(literal("nswz").then(setGame(ModGames.WSNZ)))
                 ).then(literal("config").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
                         .then(literal("respawnfly").then(argument("bool", BoolArgumentType.bool()).executes(context -> {
-                            Wuhumc.config.respawnFlyEnabled = (BoolArgumentType.getBool(context, "bool"));
+                            Wuhumc.config.respawn_fly_enabled = (BoolArgumentType.getBool(context, "bool"));
                             return 1;
                         })))
-                        .then(literal("nswzposition").then(setGamePosition(Wuhumc.config.GAME_POSITION_WSNZ)))
+                        .then(literal("nswzposition").then(setGamePosition(Wuhumc.config.game_settings_wsnz.game_position_wsnz)))
+                        .then(literal("download").executes(context -> {
+                            if (context.getSource().getPlayer() != null) {
+                                ServerPlayNetworking.send(context.getSource().getPlayer(), new Payloads.ServerConfigC2SPayload(Wuhumc.config));
+                            }
+                            return 1;
+                        }))
                 )
         ));
     }
@@ -99,6 +121,7 @@ public class ModCommands {
                             } else {
                                 ProcessorManager.get(player).emitListener(game.getNotReadyListener());
                                 ProcessorManager.get(player).setCurrentGame(game);
+                                player.addItem(new ItemStack(ModItems.READY_ITEM));
                             }
                         }
                     }
@@ -107,12 +130,12 @@ public class ModCommands {
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> setGamePosition(ServerConfig.GamePosition config) {
-        return argument("position", Vec3Argument.vec3())
+        return argument("position", BlockPosArgument.blockPos())
                 .executes(context -> {
-                    var pos = Vec3Argument.getVec3(context, "position");
-                    config.x = pos.x;
-                    config.y = pos.y;
-                    config.z = pos.z;
+                    var pos = BlockPosArgument.getBlockPos(context, "position");
+                    config.x = pos.getX();
+                    config.y = pos.getY();
+                    config.z = pos.getZ();
                     return 1;
                 });
     }

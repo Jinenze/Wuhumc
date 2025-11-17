@@ -4,7 +4,7 @@
   "package": "xyz.jinenze.wuhumc.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerPlayerEntityMixin"
+    "ServerPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

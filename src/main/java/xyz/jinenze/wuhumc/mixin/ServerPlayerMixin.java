@@ -49,7 +49,7 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
     @Inject(method = "onItemPickup", at = @At("TAIL"))
     public void onItemPickupInject(ItemEntity itemEntity, CallbackInfo ci) {
         super.onItemPickup(itemEntity);
-        if (!level().isClientSide() && itemEntity.getItem().getItem().equals(Items.DIAMOND) && itemEntity.getOwner() instanceof ServerPlayer serverOwner && !serverOwner.equals(this) ) {
+        if (!level().isClientSide() && itemEntity.getItem().getItem().equals(Items.DIAMOND) && itemEntity.getOwner() instanceof ServerPlayer serverOwner && !serverOwner.equals(this)) {
             ProcessorManager.get(serverOwner).event(ModServerEvents.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND);
         }
     }

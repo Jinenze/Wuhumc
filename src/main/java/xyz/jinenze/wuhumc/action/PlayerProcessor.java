@@ -8,7 +8,8 @@ import xyz.jinenze.wuhumc.init.ModServerEvents;
 public class PlayerProcessor<T extends Player> extends Processor<T> {
     private T player;
     private Game currentGame = ModGames.NULL;
-    private int score = 0;
+    private int previousScore = 0;
+    private int currentScore = 0;
 
     public Game getCurrentGame() {
         return currentGame;
@@ -34,20 +35,34 @@ public class PlayerProcessor<T extends Player> extends Processor<T> {
         return player;
     }
 
-    public int getScore() {
-        return score;
+    public int getCurrentScore() {
+        return currentScore;
     }
 
-    public void setScore(int score) {
-        this.score = score;
+    public void setCurrentScore(int currentScore) {
+        this.previousScore = this.currentScore;
+        this.currentScore = currentScore;
     }
 
     public void addScore(int score) {
-        this.score += score;
+        setCurrentScore(getCurrentScore() + score);
     }
 
     public void minusScore(int score) {
-        this.score -= score;
+        setCurrentScore(getCurrentScore() - score);
+    }
+
+    public int getPreviousScore() {
+        return previousScore;
+    }
+
+    public void resetPreviousScore() {
+        previousScore = getCurrentScore();
+    }
+
+    public void resetScore() {
+        currentScore = 0;
+        previousScore = 0;
     }
 
     public PlayerProcessor() {

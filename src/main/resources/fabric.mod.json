@@ -4,7 +4,9 @@
   "version": "${version}",
   "name": "Wuhumc",
   "description": "123",
-  "authors": ["Jinenze"],
+  "authors": [
+    "Jinenze"
+  ],
   "contact": {
     "sources": "https://github.com/Jinenze/Wuhumc"
   },

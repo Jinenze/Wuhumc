@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public record Actions<T>(List<Action<T>> actions) implements ActionProvider<T> {
+public record ActionList<T>(List<Action<T>> actions) implements ActionProvider<T> {
 
     public Iterator<Action<T>> iterator() {
         return actions.iterator();
@@ -30,8 +30,8 @@ public record Actions<T>(List<Action<T>> actions) implements ActionProvider<T> {
             });
         }
 
-        public Actions<T> build() {
-            return new Actions<>(Collections.unmodifiableList(actions));
+        public ActionList<T> build() {
+            return new ActionList<>(Collections.unmodifiableList(actions));
         }
 
         private Builder() {

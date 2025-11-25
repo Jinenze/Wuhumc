@@ -1,6 +1,5 @@
 package xyz.jinenze.wuhumc.action;
 
-import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ public class Processor<T> {
     }
 
     public boolean event(T input, ModServerEvents event) {
-        Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
+        // Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
         listenerProcessing = true;
         boolean result = listeners.removeIf((listener) -> {
             if (listener.event().equals(event)) {
@@ -49,8 +48,8 @@ public class Processor<T> {
     }
 
     public void emitActions(T input, ActionProvider<T> actions) {
-        Wuhumc.LOGGER.info("Action emit: {}", actions.toString());
-        Wuhumc.LOGGER.info(actionProcessing ? "handlersCache" : "handlers");
+        // Wuhumc.LOGGER.info("Action emit: {}", actions.toString());
+        // Wuhumc.LOGGER.info(actionProcessing ? "handlersCache" : "handlers");
         if (actionProcessing) {
             handlersCache.add(new ActionsHandler<>(input, actions));
             return;
@@ -59,8 +58,8 @@ public class Processor<T> {
     }
 
     public void emitListener(EventListener<T> listener) {
-        Wuhumc.LOGGER.info("Listener emit: {}", listener.toString());
-        Wuhumc.LOGGER.info(actionProcessing ? "listenersCache" : "listeners");
+        // Wuhumc.LOGGER.info("Listener emit: {}", listener.toString());
+        // Wuhumc.LOGGER.info(actionProcessing ? "listenersCache" : "listeners");
         if (listenerProcessing) {
             listenersCache.add(listener);
             return;
@@ -89,9 +88,9 @@ public class Processor<T> {
     }
 
     public void removeListener(EventListener<T> listener) {
-        Wuhumc.LOGGER.info("Listener removement: {}", listener.toString());
+        // Wuhumc.LOGGER.info("Listener removement: {}", listener.toString());
         listeners.removeIf(listener1 -> {
-            Wuhumc.LOGGER.info(listener1.equals(listener) ? "true" : "false");
+            // Wuhumc.LOGGER.info(listener1.equals(listener) ? "true" : "false");
             return listener1.equals(listener);
         });
     }

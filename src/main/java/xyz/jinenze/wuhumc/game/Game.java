@@ -1,18 +1,21 @@
 package xyz.jinenze.wuhumc.game;
 
 import net.minecraft.server.level.ServerPlayer;
-import xyz.jinenze.wuhumc.action.*;
+import xyz.jinenze.wuhumc.action.ActionList;
+import xyz.jinenze.wuhumc.action.EventListener;
+import xyz.jinenze.wuhumc.action.ProcessorManager;
+import xyz.jinenze.wuhumc.action.ServerActionContext;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 
 public class Game {
     private boolean running;
     private final ModServerEvents onReadyEvent;
-    private final Actions<ServerActionContext> gameStartAction;
+    private final ActionList<ServerActionContext> gameStartAction;
     private final EventListener<ServerPlayer> notReadyListener;
 
     public boolean gameStartPlayerEjectDirection = false;
 
-    public Game(ModServerEvents onReadyEvent, Actions<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
+    public Game(ModServerEvents onReadyEvent, ActionList<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
         this.onReadyEvent = onReadyEvent;
         this.gameStartAction = gameStartAction;
         this.notReadyListener = notReadyListener;
@@ -38,7 +41,7 @@ public class Game {
         return onReadyEvent;
     }
 
-    public Actions<ServerActionContext> getGameStartAction() {
+    public ActionList<ServerActionContext> getGameStartAction() {
         return gameStartAction;
     }
 

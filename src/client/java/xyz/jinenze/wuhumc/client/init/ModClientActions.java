@@ -2,10 +2,10 @@ package xyz.jinenze.wuhumc.client.init;
 
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.sounds.SoundEvents;
-import xyz.jinenze.wuhumc.action.Actions;
+import xyz.jinenze.wuhumc.action.ActionList;
 
 public class ModClientActions {
-    public static final Actions<LocalPlayer> respawnMusic = Actions.<LocalPlayer>getBuilder().wait(4).action((player, handler) -> {
+    public static final ActionList<LocalPlayer> respawnMusic = ActionList.<LocalPlayer>getBuilder().wait(4).action((player, handler) -> {
         player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 0.6f, 0.7937005259840998f);
         player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 0.6f, 1.0594630943592953f);
         player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 0.6f, 1.2599210498948732f);

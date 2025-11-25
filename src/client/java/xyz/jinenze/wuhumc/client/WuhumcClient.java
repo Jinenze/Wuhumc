@@ -8,6 +8,7 @@ import xyz.jinenze.wuhumc.client.config.ClientConfig;
 import xyz.jinenze.wuhumc.client.config.ClientConfigWrapper;
 import xyz.jinenze.wuhumc.client.init.ModClientActions;
 import xyz.jinenze.wuhumc.client.init.ModClientCommands;
+import xyz.jinenze.wuhumc.client.init.ModUI;
 import xyz.jinenze.wuhumc.client.network.ClientNetwork;
 import xyz.jinenze.wuhumc.config.ServerConfig;
 
@@ -23,5 +24,6 @@ public class WuhumcClient implements ClientModInitializer {
         ModClientActions.register();
         ModClientCommands.register();
         ClientNetwork.register();
+        ModUI.register();
     }
 }

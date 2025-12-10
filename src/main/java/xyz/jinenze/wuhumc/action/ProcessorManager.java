@@ -10,9 +10,9 @@ import java.util.UUID;
 
 public class ProcessorManager {
     private static final Processor<ServerActionContext> serverProcessor = new Processor<>();
-    private static final Map<UUID, PlayerProcessor<ServerPlayer>> processors = new HashMap<>();
+    private static final Map<UUID, ServerPlayerProcessor> processors = new HashMap<>();
 
-    public static PlayerProcessor<ServerPlayer> get(ServerPlayer player) {
+    public static ServerPlayerProcessor get(ServerPlayer player) {
         return ((ServerPlayerMixinGetter) player).wuhumc$getProcessor();
     }
 
@@ -20,13 +20,13 @@ public class ProcessorManager {
         return serverProcessor;
     }
 
-    public static PlayerProcessor<ServerPlayer> createOrRefresh(ServerPlayer player) {
+    public static ServerPlayerProcessor createOrRefresh(ServerPlayer player) {
         var processor = processors.get(player.getUUID());
         if (processor != null) {
             processor.setPlayer(player);
             return processor;
         }
-        processor = new PlayerProcessor<>(player);
+        processor = new ServerPlayerProcessor(player);
         processors.put(player.getUUID(), processor);
         return processor;
     }
@@ -35,9 +35,9 @@ public class ProcessorManager {
         get(player).setPlayer(player);
     }
 
-    public static void remove(ServerPlayer player) {
-        processors.remove(player.getUUID());
-    }
+//    public static void remove(ServerPlayer player) {
+//        processors.remove(player.getUUID());
+//    }
 
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(minecraftServer -> {

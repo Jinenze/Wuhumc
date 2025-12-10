@@ -21,8 +21,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.jinenze.wuhumc.action.PlayerProcessor;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
+import xyz.jinenze.wuhumc.action.ServerPlayerProcessor;
 import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 import xyz.jinenze.wuhumc.util.ServerPlayerMixinGetter;
@@ -32,7 +32,7 @@ import java.util.List;
 @Mixin(ServerPlayer.class)
 abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGetter {
     @Unique
-    private final PlayerProcessor<ServerPlayer> processor = ProcessorManager.createOrRefresh((ServerPlayer) (Object) this);
+    private final ServerPlayerProcessor processor = ProcessorManager.createOrRefresh((ServerPlayer) (Object) this);
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void initInject(MinecraftServer minecraftServer, ServerLevel serverLevel, GameProfile gameProfile, ClientInformation clientInformation, CallbackInfo ci) {
@@ -55,7 +55,7 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
     }
 
     @Override
-    public PlayerProcessor<ServerPlayer> wuhumc$getProcessor() {
+    public ServerPlayerProcessor wuhumc$getProcessor() {
         return processor;
     }
 

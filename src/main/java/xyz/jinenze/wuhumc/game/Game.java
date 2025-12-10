@@ -34,7 +34,7 @@ public class Game {
     }
 
     public void addScore(ServerPlayer player) {
-        ProcessorManager.get(player).addScore(1);
+        ProcessorManager.get(player).addCurrentScore(1);
     }
 
     public ModServerEvents getOnReadyEvent() {

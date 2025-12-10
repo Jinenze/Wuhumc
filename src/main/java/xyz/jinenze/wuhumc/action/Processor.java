@@ -95,11 +95,6 @@ public class Processor<T> {
         });
     }
 
-    public boolean listenersContain(List<EventListener<T>> listeners) {
-
-        return this.listeners.containsAll(listeners);
-    }
-
     public Processor() {
     }
 }

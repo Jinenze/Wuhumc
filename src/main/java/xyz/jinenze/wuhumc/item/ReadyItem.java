@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import xyz.jinenze.wuhumc.action.PlayerProcessor;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.action.ServerActionContext;
+import xyz.jinenze.wuhumc.action.ServerPlayerProcessor;
 import xyz.jinenze.wuhumc.init.ModItems;
 import xyz.jinenze.wuhumc.init.ModServerActions;
 
@@ -38,7 +39,7 @@ public class ReadyItem extends Item {
                     return InteractionResult.PASS;
                 }
             }
-            List<PlayerProcessor<ServerPlayer>> processors = new ArrayList<>();
+            List<ServerPlayerProcessor> processors = new ArrayList<>();
             for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
                 if (ProcessorManager.get(anotherPlayer).getCurrentGame().equals(ProcessorManager.get(serverPlayer).getCurrentGame())) {
                     processors.add(ProcessorManager.get(anotherPlayer));

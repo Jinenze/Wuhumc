@@ -75,7 +75,7 @@ public class WSNZGame extends Game {
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_minus_score")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.SHIELD_BLOCK, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
-        ProcessorManager.get(player).addScore(currentGame.score());
+        ProcessorManager.get(player).addCurrentScore(currentGame.score());
         --remainPoints;
     }
 

@@ -162,7 +162,7 @@ public class ModServerActions {
             var turtle = new Turtle(EntityType.TURTLE, level);
             turtle.setCustomName(Component.literal(maxProcessor.getPlayer().getGameProfile().name()));
             turtle.setPos(level.getRespawnData().pos().getBottomCenter());
-            turtle.addEffect(new MobEffectInstance(MobEffects.HEALTH_BOOST, -1, 255, false, false));
+            turtle.addEffect(new MobEffectInstance(MobEffects.REGENERATION, -1, 255, false, false));
             level.addFreshEntity(turtle);
         } else {
             var itemStack = new ItemStack(Items.TURTLE_HELMET);
@@ -212,21 +212,21 @@ public class ModServerActions {
                 return true;
             }
         }
+        showCountdown(context, key);
+        return false;
+    }
+
+    private static void showCountdown(ServerActionContext context, String key) {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable(key)));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
-        return false;
     }
 
     public static final ActionList<ServerActionContext> GAME_COUNTDOWN = ActionList.<ServerActionContext>getBuilder(
     ).action((context, handler) -> {
-                for (var processor : context.processors()) {
-                    var player = processor.getPlayer();
-                    player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_countdown_5")));
-                    player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                }
+                showCountdown(context, "title.wuhumc.game_countdown_5");
                 return false;
             }
     ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_4")

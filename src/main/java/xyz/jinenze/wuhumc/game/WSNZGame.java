@@ -41,7 +41,6 @@ public class WSNZGame extends Game {
     private WSNZSubGame currentGame;
     private int remainPoints;
     private int remainGames;
-    private int nextDelay;
 
     public WSNZGame() {
         super(ModServerEvents.PLAYER_WSNZ_READY, WSNZ_MAIN, ModEventListeners.PLAYER_WSNZ_READY_PLAYER_NOT_READY);
@@ -85,14 +84,6 @@ public class WSNZGame extends Game {
         super.gameStart();
         this.remainGames = Wuhumc.config.game_settings_wsnz.max_games;
         reroll();
-    }
-
-    public void setNextDelay(int nextDelay) {
-        this.nextDelay = nextDelay;
-    }
-
-    public int getNextDelay() {
-        return nextDelay;
     }
 
     public static ItemStack getDiamond() {

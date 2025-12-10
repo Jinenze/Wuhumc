@@ -6,8 +6,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.ARGB;
-import net.minecraft.world.phys.Vec3;
-import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.client.WuhumcClient;
 
 import java.util.ArrayList;
@@ -32,7 +30,7 @@ public class ScoreBoard {
             startTime = Util.getMillis() + offset;
             render = context -> {
                 float currentTotalTime = Util.getMillis() - startTime;
-                if (Util.getMillis() < 0) {
+                if (currentTotalTime < 0) {
                     return false;
                 }
                 if (currentTotalTime > WuhumcClient.config.score_board.total_visible_time) {

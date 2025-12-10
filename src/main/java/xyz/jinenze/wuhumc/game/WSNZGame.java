@@ -9,7 +9,6 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -37,7 +36,7 @@ public class WSNZGame extends Game {
 
     private static final ItemStack DIAMOND;
     private final ArrayList<WSNZSubGame> subActionList = SubGames.getElements();
-    private Iterator<WSNZSubGame> iterator;
+    private Iterator<WSNZSubGame> currentGamesIterator;
     private WSNZSubGame currentGame;
     private int remainPoints;
     private int remainGames;
@@ -47,11 +46,11 @@ public class WSNZGame extends Game {
     }
 
     public boolean hasNext() {
-        return iterator.hasNext() && remainGames != 0;
+        return currentGamesIterator.hasNext() && remainGames != 0;
     }
 
     public WSNZSubGame next(ServerActionContext context) {
-        currentGame = iterator.next();
+        currentGame = currentGamesIterator.next();
         remainPoints = currentGame.scoringRule().getTotalPoints(context);
         --remainGames;
         return currentGame;
@@ -92,7 +91,7 @@ public class WSNZGame extends Game {
 
     public void reroll() {
         Collections.shuffle(subActionList);
-        iterator = subActionList.iterator();
+        currentGamesIterator = subActionList.iterator();
     }
 
     private static WSNZSubGame needMonitoringSubGame(int delay, int points, WSNZSubGame.ScoringRule scoringRule, Component text, Function<ServerPlayer, Boolean> monitor) {
@@ -117,14 +116,14 @@ public class WSNZGame extends Game {
         }).build());
     }
 
-    private static WSNZSubGame craftItemSubGame(int delay, int points, WSNZSubGame.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<ItemStack> requireItemStacks, List<Item> deleteItems) {
+    private static WSNZSubGame craftItemSubGame(int delay, int points, WSNZSubGame.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
         return new WSNZSubGame(delay, points, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
             var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
             context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState(), 0);
             for (var processor : context.processors()) {
                 var player = processor.getPlayer();
-                for (var itemStack : requireItemStacks) {
-                    player.addItem(itemStack);
+                for (var supplier : requireItemStacks) {
+                    player.addItem(supplier.get());
                 }
                 player.connection.send(new ClientboundSetTitleTextPacket(text));
                 player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
@@ -145,16 +144,16 @@ public class WSNZGame extends Game {
             return false;
         }).wait(4).action((context, handler) -> {
             for (var processor : context.processors()) {
-                PlayerItemUtil.removeItemsFromPlayer(processor.getPlayer(), deleteItems);
+                processor.getPlayer().getInventory().clearContent();
                 processor.removeListener(listener);
                 resetPlayerPosition(processor.getPlayer());
             }
-            PlayerItemUtil.deleteItenListFromGround(context.processors().getFirst().getPlayer().level(), deleteItems);
+            PlayerItemUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
             return true;
         }).build());
     }
 
-    private static WSNZSubGame needItemSubGame(int delay, int points, WSNZSubGame.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks, List<Item> deleteItems) {
+    private static WSNZSubGame needItemSubGame(int delay, int points, WSNZSubGame.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
         return new WSNZSubGame(delay, points, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
             for (var processor : context.processors()) {
                 var player = processor.getPlayer();
@@ -169,13 +168,13 @@ public class WSNZGame extends Game {
             return false;
         }).wait(delay).action((context, handler) -> {
             for (var processor : context.processors()) {
-                PlayerItemUtil.removeItemsFromPlayer(processor.getPlayer(), deleteItems);
+                processor.getPlayer().getInventory().clearContent();
                 processor.removeListener(listener);
                 resetPlayerPosition(processor.getPlayer());
                 var player = processor.getPlayer();
                 player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             }
-            PlayerItemUtil.deleteItenListFromGround(context.processors().getFirst().getPlayer().level(), deleteItems);
+            PlayerItemUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
             showPlayersScoreBoard(context);
             return true;
         }).build());
@@ -204,12 +203,12 @@ public class WSNZGame extends Game {
     }
 
     public enum SubGames {
-        WSNZ_6_NOT_ABOVE(needMonitoringSubGame(60, -1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_6"), player -> player.getXRot() < -80f)),
-        WSNZ_5_ABOVE(needMonitoringSubGame(60, 1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_5"), player -> player.getXRot() < -80f)),
-        WSNZ_4_CRAFT_AXE(craftItemSubGame(120, 1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_4"), ModEventListeners.PLAYER_CRAFTED_DIAMOND_AXE_WSNZ_4, List.of(new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.STICK, 2)), List.of(Items.DIAMOND, Items.STICK, Items.DIAMOND_AXE))),
-        WSNZ_3_DIAMOND(needItemSubGame(120, 1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_3"), ModEventListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND_WSNZ_3, List.of(WSNZGame::getDiamond), List.of(Items.DIAMOND))),
-        WSNZ_2_SHIFT_DOWN(basicSubGame(60, 1, WSNZSubGame.ScoringRule.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_2"), ModEventListeners.PLAYER_SHIFT_DOWN_WSNZ_2)),
-        WSNZ_1_FALL_VOID(basicSubGame(60, 1, WSNZSubGame.ScoringRule.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1"), ModEventListeners.PLAYER_FALL_VOID_WSNZ_1)),
+        NOT_ABOVE(needMonitoringSubGame(60, -1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_above"), player -> player.getXRot() < -80f)),
+        ABOVE(needMonitoringSubGame(60, 1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1above"), player -> player.getXRot() < -80f)),
+        CRAFT_AXE(craftItemSubGame(120, 1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_craft_axe"), ModEventListeners.PLAYER_CRAFTED_DIAMOND_AXE_WSNZ_4, List.of(() -> new ItemStack(Items.DIAMOND, 3), () -> new ItemStack(Items.STICK, 2)))),
+        DIAMOND(needItemSubGame(120, 1, WSNZSubGame.ScoringRule.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_diamond"), ModEventListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND_WSNZ_3, List.of(WSNZGame::getDiamond))),
+        SHIFT_DOWN(basicSubGame(60, 1, WSNZSubGame.ScoringRule.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_shift_down"), ModEventListeners.PLAYER_SHIFT_DOWN_WSNZ_2)),
+        FALL_VOID(basicSubGame(60, 1, WSNZSubGame.ScoringRule.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_fall_void"), ModEventListeners.PLAYER_FALL_VOID_WSNZ_1)),
         ;
         private final WSNZSubGame game;
 
@@ -223,7 +222,6 @@ public class WSNZGame extends Game {
             return result;
         }
     }
-
 
     public static final ActionList<ServerActionContext> WSMZ_REFRESH = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         for (var processor : context.processors()) {

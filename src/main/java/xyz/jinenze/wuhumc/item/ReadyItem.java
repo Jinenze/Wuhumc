@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import xyz.jinenze.wuhumc.action.PlayerProcessor;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.action.ServerActionContext;
 import xyz.jinenze.wuhumc.action.ServerPlayerProcessor;

@@ -41,10 +41,10 @@
   "title.wuhumc.game_wsnz_refresh_1": ".",
   "title.wuhumc.game_wsnz_refresh_2": "..",
   "title.wuhumc.game_wsnz_refresh_3": "...",
-  "title.wuhumc.game_wsnz_1": "jump into void",
-  "title.wuhumc.game_wsnz_2": "press shift",
-  "title.wuhumc.game_wsnz_3": "drop a diamond to someone",
-  "title.wuhumc.game_wsnz_4": "craft diamond axe",
-  "title.wuhumc.game_wsnz_5": "above",
-  "title.wuhumc.game_wsnz_6": "not above"
+  "title.wuhumc.game_wsnz_1_fall_void": "jump into void",
+  "title.wuhumc.game_wsnz_1_shift_down": "press shift",
+  "title.wuhumc.game_wsnz_1_diamond": "drop a diamond to someone",
+  "title.wuhumc.game_wsnz_1_craft_axe": "craft diamond axe",
+  "title.wuhumc.game_wsnz_1above": "above",
+  "title.wuhumc.game_wsnz_1_not_above": "not above"
 }

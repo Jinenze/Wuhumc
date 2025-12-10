@@ -41,10 +41,10 @@
   "title.wuhumc.game_wsnz_refresh_1": ".",
   "title.wuhumc.game_wsnz_refresh_2": "..",
   "title.wuhumc.game_wsnz_refresh_3": "...",
-  "title.wuhumc.game_wsnz_1": "跳进虚空",
-  "title.wuhumc.game_wsnz_2": "蹲下",
-  "title.wuhumc.game_wsnz_3": "丢一颗钻石给别人",
-  "title.wuhumc.game_wsnz_4": "做一把钻石斧",
-  "title.wuhumc.game_wsnz_5": "抬头",
-  "title.wuhumc.game_wsnz_6": "不要抬头"
+  "title.wuhumc.game_wsnz_1_fall_void": "跳进虚空",
+  "title.wuhumc.game_wsnz_1_shift_down": "蹲下",
+  "title.wuhumc.game_wsnz_1_diamond": "丢一颗钻石给别人",
+  "title.wuhumc.game_wsnz_1_craft_axe": "做一把钻石斧",
+  "title.wuhumc.game_wsnz_1above": "抬头",
+  "title.wuhumc.game_wsnz_1_not_above": "不要抬头"
 }

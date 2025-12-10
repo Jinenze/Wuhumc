@@ -33,6 +33,7 @@ import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.config.ServerConfig;
 import xyz.jinenze.wuhumc.network.Payloads;
+import xyz.jinenze.wuhumc.util.InventorySnapshot;
 import xyz.jinenze.wuhumc.util.PlayerItemUtil;
 
 import java.util.HashMap;
@@ -155,6 +156,7 @@ public class ModServerActions {
                 maxProcessor = processor;
             }
             processor.resetScore();
+            processor.getPlayer().getInventory().replaceWith(processor.getInventoryCacheStack().pop().getInventory());
         }
 
         var level = maxProcessor.getPlayer().level();
@@ -241,6 +243,10 @@ public class ModServerActions {
                     public ActionProvider<ServerActionContext> get() {
                         return GAME_COUNTDOWN;
                     }
+                });
+                context.processors().forEach(processor -> {
+                    processor.getInventoryCacheStack().push(new InventorySnapshot(processor.getPlayer().getInventory()));
+                    processor.getPlayer().getInventory().clearContent();
                 });
                 context.processors().getFirst().getCurrentGame().gameStart();
                 ProcessorManager.getServerProcessor().emitActions(context, context.processors().getFirst().getCurrentGame().getGameStartAction());

@@ -3,11 +3,15 @@ package xyz.jinenze.wuhumc.action;
 import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.game.Game;
 import xyz.jinenze.wuhumc.init.ModGames;
+import xyz.jinenze.wuhumc.util.InventorySnapshot;
+
+import java.util.Stack;
 
 public class ServerPlayerProcessor extends PlayerProcessor<ServerPlayer> {
     private Game currentGame = ModGames.NULL;
     private int previousScore = 0;
     private int currentScore = 0;
+    private final Stack<InventorySnapshot> inventoryCacheStack = new Stack<>();
 
     public Game getCurrentGame() {
         return currentGame;
@@ -47,7 +51,8 @@ public class ServerPlayerProcessor extends PlayerProcessor<ServerPlayer> {
         previousScore = 0;
     }
 
-    public ServerPlayerProcessor() {
+    public Stack<InventorySnapshot> getInventoryCacheStack() {
+        return inventoryCacheStack;
     }
 
     public ServerPlayerProcessor(ServerPlayer player) {

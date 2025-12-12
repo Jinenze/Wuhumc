@@ -29,8 +29,8 @@ public class ModCommands {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal("wuhumc"
                 ).then(literal("action").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
-                        .then(literal("dumbactions").then(emitActions(ModServerActions.dumbActions)))
-                        .then(literal("test").then(emitActions(ModServerActions.test)))
+                        .then(literal("dumbactions").then(emitPlayerActions(ModServerActions.dumbActions)))
+                        .then(literal("test").then(emitPlayerActions(ModServerActions.test)))
                         .then(literal("newmoniter").executes(context -> {
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getXRot()));
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getYRot()));
@@ -66,7 +66,7 @@ public class ModCommands {
                             return 1;
                         })))
                 ).then(literal("game").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
-                        .then(literal("nswz").then(setGame(ModGames.WSNZ)))
+                        .then(literal("nswz").then(setPlayerGame(ModGames.WSNZ)))
                 ).then(literal("config").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
                         .then(literal("respawnfly").then(argument("bool", BoolArgumentType.bool()).executes(context -> {
                             Wuhumc.config.respawn_fly_enabled = (BoolArgumentType.getBool(context, "bool"));
@@ -83,7 +83,7 @@ public class ModCommands {
         ));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> emitActions(ActionProvider<ServerPlayer> actions) {
+    private static ArgumentBuilder<CommandSourceStack, ?> emitPlayerActions(ActionProvider<ServerPlayer> actions) {
         return argument("targets", EntityArgument.players())
                 .executes(context -> {
                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
@@ -109,7 +109,7 @@ public class ModCommands {
                 });
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> setGame(Game game) {
+    private static ArgumentBuilder<CommandSourceStack, ?> setPlayerGame(Game game) {
         return argument("targets", EntityArgument.players())
                 .executes(context -> {
                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");

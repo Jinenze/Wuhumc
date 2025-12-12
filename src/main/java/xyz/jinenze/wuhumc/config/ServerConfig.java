@@ -18,7 +18,7 @@ public class ServerConfig implements ConfigData {
     }
 
     public static class WSNZGameSettings {
-        public int max_games = 10;
+        public int max_games = 5;
         @ConfigEntry.Gui.CollapsibleObject
         public GamePosition game_position_wsnz = new GamePosition();
     }

@@ -42,9 +42,11 @@
   "title.wuhumc.game_wsnz_refresh_2": "..",
   "title.wuhumc.game_wsnz_refresh_3": "...",
   "title.wuhumc.game_wsnz_1_fall_void": "jump into void",
-  "title.wuhumc.game_wsnz_1_shift_down": "press shift",
-  "title.wuhumc.game_wsnz_1_diamond": "drop a diamond to someone",
+  "title.wuhumc.game_wsnz_1_sneak": "press shift",
+  "title.wuhumc.game_wsnz_1_diamond_gift": "drop a diamond to someone",
   "title.wuhumc.game_wsnz_1_craft_axe": "craft diamond axe",
-  "title.wuhumc.game_wsnz_1above": "above",
-  "title.wuhumc.game_wsnz_1_not_above": "not above"
+  "title.wuhumc.game_wsnz_1_above": "above",
+  "title.wuhumc.game_wsnz_1_not_above": "not above",
+  "title.wuhumc.game_wsnz_1_below": "below",
+  "title.wuhumc.game_wsnz_1_not_below": "not below"
 }

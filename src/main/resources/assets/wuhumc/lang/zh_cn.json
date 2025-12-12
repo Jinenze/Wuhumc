@@ -15,7 +15,7 @@
   "text.autoconfig.wuhumc.category.server": "服务端设置（没事别动）",
   "text.autoconfig.wuhumc.option.server.respawn_fly_enabled": "起飞！",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz": "wsnz",
-  "text.autoconfig.wuhumc.option.server.game_settings_wsnz.max_games": "单句游戏数量上限",
+  "text.autoconfig.wuhumc.option.server.game_settings_wsnz.max_games": "单轮游戏数量上限",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz.game_position_wsnz": "起始位置",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz.game_position_wsnz.x": "x",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz.game_position_wsnz.y": "y",
@@ -42,9 +42,11 @@
   "title.wuhumc.game_wsnz_refresh_2": "..",
   "title.wuhumc.game_wsnz_refresh_3": "...",
   "title.wuhumc.game_wsnz_1_fall_void": "跳进虚空",
-  "title.wuhumc.game_wsnz_1_shift_down": "蹲下",
-  "title.wuhumc.game_wsnz_1_diamond": "丢一颗钻石给别人",
+  "title.wuhumc.game_wsnz_1_sneak": "蹲下",
+  "title.wuhumc.game_wsnz_1_diamond_gift": "丢一颗钻石给别人",
   "title.wuhumc.game_wsnz_1_craft_axe": "做一把钻石斧",
-  "title.wuhumc.game_wsnz_1above": "抬头",
-  "title.wuhumc.game_wsnz_1_not_above": "不要抬头"
+  "title.wuhumc.game_wsnz_1_above": "抬头",
+  "title.wuhumc.game_wsnz_1_not_above": "不要抬头",
+  "title.wuhumc.game_wsnz_1_below": "低头",
+  "title.wuhumc.game_wsnz_1_not_below": "不要低头"
 }

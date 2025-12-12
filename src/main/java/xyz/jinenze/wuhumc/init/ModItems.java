@@ -7,7 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +22,7 @@ public class ModItems {
 
     public static final Item NOT_READY_ITEM = registerItem("not_ready_item", NotReadyItem::new);
 
-    public static final ResourceKey<CreativeModeTab> CUSTOM_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(Wuhumc.MOD_ID, "item_group"));
+    public static final ResourceKey<CreativeModeTab> CUSTOM_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "item_group"));
 
     public static final CreativeModeTab CUSTOM_TAB = FabricItemGroup.builder()
             .icon(() -> new ItemStack(READY_ITEM))
@@ -38,7 +38,7 @@ public class ModItems {
     }
 
     private static Item registerItem(String name, Function<Item.Properties, Item> itemFactory) {
-        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Wuhumc.MOD_ID, name));
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, name));
         Item item = itemFactory.apply(new Item.Properties().setId(itemKey));
         Registry.register(BuiltInRegistries.ITEM, itemKey, item);
         return item;

@@ -1,7 +1,7 @@
 package xyz.jinenze.wuhumc.client.gui;
 
 import com.ibm.icu.impl.Pair;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

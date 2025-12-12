@@ -5,10 +5,12 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionCheck;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import xyz.jinenze.wuhumc.Wuhumc;
@@ -28,7 +30,7 @@ public class ModCommands {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal("wuhumc"
-                ).then(literal("action").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+                ).then(literal("action").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("dumbactions").then(emitPlayerActions(ModServerActions.dumbActions)))
                         .then(literal("test").then(emitPlayerActions(ModServerActions.test)))
                         .then(literal("newmoniter").executes(context -> {
@@ -50,7 +52,7 @@ public class ModCommands {
                             ProcessorManager.getServerProcessor().clearActions();
                             return 1;
                         })))
-                ).then(literal("listener").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+                ).then(literal("listener").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("nswznotready").then(listen(ModEventListeners.PLAYER_WSNZ_READY_PLAYER_NOT_READY)))
                         .then(literal("clear").then(argument("targets", EntityArgument.players())
                                 .executes(context -> {
@@ -65,9 +67,9 @@ public class ModCommands {
                             ProcessorManager.getServerProcessor().clearListeners();
                             return 1;
                         })))
-                ).then(literal("game").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+                ).then(literal("game").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("nswz").then(setPlayerGame(ModGames.WSNZ)))
-                ).then(literal("config").requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+                ).then(literal("config").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("respawnfly").then(argument("bool", BoolArgumentType.bool()).executes(context -> {
                             Wuhumc.config.respawn_fly_enabled = (BoolArgumentType.getBool(context, "bool"));
                             return 1;

@@ -3,7 +3,7 @@ package xyz.jinenze.wuhumc.mixin;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -41,7 +41,7 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
 
     @Inject(method = "triggerRecipeCrafted", at = @At("TAIL"))
     private void craftedInject(RecipeHolder<?> recipeHolder, List<ItemStack> list, CallbackInfo ci) {
-        if (recipeHolder.id().equals(ResourceKey.create(Registries.RECIPE, ResourceLocation.withDefaultNamespace("diamond_axe")))) {
+        if (recipeHolder.id().equals(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("diamond_axe")))) {
             processor.event(ModServerEvents.PLAYER_CRAFTED_DIAMOND_AXE);
         }
     }

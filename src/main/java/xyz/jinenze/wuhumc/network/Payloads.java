@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.config.ServerConfig;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class Payloads {
     public record ServerConfigC2SPayload(ServerConfig config) implements CustomPacketPayload {
-        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Wuhumc.MOD_ID, "send_server_config");
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "send_server_config");
         public static final CustomPacketPayload.Type<ServerConfigC2SPayload> TYPE = new CustomPacketPayload.Type<>(ID);
         public static final StreamCodec<RegistryFriendlyByteBuf, ServerConfigC2SPayload> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, ServerConfigC2SPayload::getJson, ServerConfigC2SPayload::getInstance);
 
@@ -35,7 +35,7 @@ public class Payloads {
     }
 
     public record ShowScoreBoardS2CPayload(Map<String, Pair<Integer, Integer>> scores) implements CustomPacketPayload {
-        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Wuhumc.MOD_ID, "show_scoreboard");
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "show_scoreboard");
         public static final CustomPacketPayload.Type<ShowScoreBoardS2CPayload> TYPE = new CustomPacketPayload.Type<>(ID);
         public static final StreamCodec<RegistryFriendlyByteBuf, ShowScoreBoardS2CPayload> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, ShowScoreBoardS2CPayload::getJson, ShowScoreBoardS2CPayload::getInstance);
         private static final java.lang.reflect.Type jsonType = new TypeToken<Map<String, Pair<Integer, Integer>>>() {

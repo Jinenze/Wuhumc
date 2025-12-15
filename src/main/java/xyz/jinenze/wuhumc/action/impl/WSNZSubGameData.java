@@ -15,6 +15,7 @@ public record WSNZSubGameData(int totalTime, int scoreFactor, ScoringRule scorin
     }
 
     public enum ScoringRuleImpl implements ScoringRule {
+        NONE((scorerCount, scoreFactor, context) -> 9, Component.literal("")),
         INFINITE((scorerCount, scoreFactor, context) -> scoreFactor, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_infinite")),
         TOP_ONE((scorerCount, scoreFactor, context) -> scorerCount == 1 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_one")),
         TOP_HALF((scorerCount, scoreFactor, context) -> scorerCount > context.processors().size() / 2 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_half")),

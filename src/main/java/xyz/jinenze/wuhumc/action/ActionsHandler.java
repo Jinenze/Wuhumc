@@ -9,13 +9,13 @@ public class ActionsHandler<T> {
     private final Iterator<Action<T>> iterator;
     private int delay;
 
-    ActionsHandler(T input, ActionProvider<T> actions) {
+    public ActionsHandler(T input, ActionProvider<T> actions) {
         this.input = input;
         this.actions = actions;
         this.iterator = actions.iterator();
     }
 
-    boolean tick() {
+    public boolean tick() {
         if (delay > 0) {
             --delay;
             return false;

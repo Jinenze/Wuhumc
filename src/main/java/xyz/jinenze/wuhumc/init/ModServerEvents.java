@@ -1,6 +1,8 @@
 package xyz.jinenze.wuhumc.init;
 
-public enum ModServerEvents {
+import xyz.jinenze.wuhumc.action.Event;
+
+public enum ModServerEvents implements Event {
     PLAYER_WSNZ_READY,
     PLAYER_FALL_VOID,
     PLAYER_SHIFT_DOWN,

@@ -6,8 +6,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -17,23 +17,33 @@ import xyz.jinenze.wuhumc.item.ReadyItem;
 
 import java.util.function.Function;
 
-public class ModItems {
-    public static final Item READY_ITEM = registerItem("ready_item", ReadyItem::new);
+public enum ModItems {
+    READY_ITEM(registerItem("ready_item", ReadyItem::new)),
+    NOT_READY_ITEM(registerItem("not_ready_item", NotReadyItem::new)),
+    ;
+    private final Item item;
 
-    public static final Item NOT_READY_ITEM = registerItem("not_ready_item", NotReadyItem::new);
+    ModItems(Item item) {
+        this.item = item;
+    }
+
+    public Item getItem() {
+        return item;
+    }
 
     public static final ResourceKey<CreativeModeTab> CUSTOM_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "item_group"));
 
     public static final CreativeModeTab CUSTOM_TAB = FabricItemGroup.builder()
-            .icon(() -> new ItemStack(READY_ITEM))
+            .icon(() -> new ItemStack(READY_ITEM.getItem()))
             .title(Component.translatable("itemGroup.wuhumc.wuhumc"))
             .build();
 
     public static void register() {
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, CUSTOM_TAB_KEY, CUSTOM_TAB);
         ItemGroupEvents.modifyEntriesEvent(CUSTOM_TAB_KEY).register(itemGroup -> {
-            itemGroup.prepend(READY_ITEM);
-            itemGroup.prepend(NOT_READY_ITEM);
+            for (var item : values()) {
+                itemGroup.prepend(item.getItem());
+            }
         });
     }
 

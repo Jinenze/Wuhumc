@@ -1,7 +1,5 @@
 package xyz.jinenze.wuhumc.action;
 
-import xyz.jinenze.wuhumc.init.ModServerEvents;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -31,7 +29,7 @@ public class Processor<T> {
         actionProcessing = false;
     }
 
-    public boolean event(T input, ModServerEvents event) {
+    public boolean event(T input, Event event) {
         // Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
         listenerProcessing = true;
         boolean result = listeners.removeIf((listener) -> {

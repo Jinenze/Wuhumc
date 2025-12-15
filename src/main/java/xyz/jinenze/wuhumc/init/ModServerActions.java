@@ -3,8 +3,6 @@ package xyz.jinenze.wuhumc.init;
 import com.ibm.icu.impl.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
@@ -26,15 +24,12 @@ import net.minecraft.world.item.component.FireworkExplosion;
 import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.*;
-import xyz.jinenze.wuhumc.config.ServerConfig;
 import xyz.jinenze.wuhumc.network.Payloads;
 import xyz.jinenze.wuhumc.util.InventorySnapshot;
-import xyz.jinenze.wuhumc.util.PlayerItemUtil;
+import xyz.jinenze.wuhumc.util.PlayerUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -113,21 +108,6 @@ public class ModServerActions {
                 return action;
             }
         };
-    }
-
-    public static void resetPlayerPosition(ServerPlayer player) {
-        var pos = player.getRespawnConfig().respawnData().pos().getBottomCenter();
-        player.teleportTo(pos.x(), pos.y(), pos.z());
-    }
-
-    public static void ejectPlayer(ServerPlayer player) {
-        resetPlayerPosition(player);
-        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection ? 1 : -1, 0.5, 0)));
-        ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection = !ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection;
-    }
-
-    public static void setSpawnPoint(ServerPlayer player, ServerConfig.GamePosition config) {
-        player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(Level.OVERWORLD, new BlockPos(config.x, config.y, config.z)), 0, 0), true), false);
     }
 
     public static final ActionList<ServerPlayer> RESPAWN_FLY = ActionList.<ServerPlayer>getBuilder().action((player, handler) -> {
@@ -237,7 +217,7 @@ public class ModServerActions {
     ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_1")
     ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_end")
     ).action((context, handler) -> {
-                context.processors().forEach(processor -> PlayerItemUtil.removeReadyItemFromPlayer(processor.getPlayer()));
+                context.processors().forEach(processor -> PlayerUtil.removeReadyItemFromPlayer(processor.getPlayer()));
                 ProcessorManager.getServerProcessor().planToRemoveRunningActions(new Supplier<>() {
                     @Override
                     public ActionProvider<ServerActionContext> get() {

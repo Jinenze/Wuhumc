@@ -5,8 +5,6 @@ import net.minecraft.server.permissions.Permission;
 import net.minecraft.server.permissions.PermissionLevel;
 import xyz.jinenze.wuhumc.Wuhumc;
 
-import java.security.Permissions;
-
 public class ServerNetwork {
     public static void register() {
         ServerPlayNetworking.registerGlobalReceiver(Payloads.ServerConfigC2SPayload.TYPE, (payload, context) -> {

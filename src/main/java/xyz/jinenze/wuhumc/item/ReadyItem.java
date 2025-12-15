@@ -21,7 +21,7 @@ import java.util.List;
 
 public class ReadyItem extends Item {
     public ReadyItem(Properties properties) {
-        super(properties.fireResistant().rarity(Rarity.EPIC).stacksTo(1));
+        super(properties.rarity(Rarity.EPIC));
     }
 
     @Override
@@ -32,7 +32,7 @@ public class ReadyItem extends Item {
             processor.removeListener(currentGame.getNotReadyListener());
             var inventory = serverPlayer.getInventory();
             inventory.removeItemNoUpdate(inventory.getSelectedSlot());
-            inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.NOT_READY_ITEM));
+            inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.NOT_READY_ITEM.getItem()));
             for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
                 if (ProcessorManager.get(anotherPlayer).event(currentGame.getOnReadyEvent())) {
                     return InteractionResult.PASS;

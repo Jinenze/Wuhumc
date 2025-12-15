@@ -1,11 +1,11 @@
 package xyz.jinenze.wuhumc.client.gui;
 
 import com.ibm.icu.impl.Pair;
-import net.minecraft.util.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.Util;
 import xyz.jinenze.wuhumc.client.WuhumcClient;
 
 import java.util.ArrayList;
@@ -49,13 +49,13 @@ public class ScoreBoard {
                 }
                 float x = context.guiWidth() - WuhumcClient.config.score_board.width * displayPortion;
                 context.pose().pushMatrix().translate(x, y);
-                context.drawString(Minecraft.getInstance().font, player, 0, 0, ARGB.white(1));
+                context.drawString(Minecraft.getInstance().font, player, 0, 0, ARGB.color(255, 255, 255));
                 int difference = currentScore - previousScore;
-                context.drawString(Minecraft.getInstance().font, String.valueOf(currentScore), WuhumcClient.config.score_board.cap_1, 0, ARGB.white(1));
+                context.drawString(Minecraft.getInstance().font, String.valueOf(currentScore), WuhumcClient.config.score_board.cap_1, 0, ARGB.color(255, 255, 255));
                 if (difference > 0) {
                     context.drawString(Minecraft.getInstance().font, "+" + difference, WuhumcClient.config.score_board.cap_2, 0, ARGB.color(0, 255, 0));
                 } else if (difference == 0) {
-                    context.drawString(Minecraft.getInstance().font, "0", WuhumcClient.config.score_board.cap_2, 0, ARGB.white(1));
+                    context.drawString(Minecraft.getInstance().font, "0", WuhumcClient.config.score_board.cap_2, 0, ARGB.color(255, 255, 255));
                 } else {
                     context.drawString(Minecraft.getInstance().font, String.valueOf(difference), WuhumcClient.config.score_board.cap_2, 0, ARGB.color(255, 0, 0));
                 }

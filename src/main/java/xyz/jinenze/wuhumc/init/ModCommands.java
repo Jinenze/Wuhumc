@@ -10,8 +10,6 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.PermissionCheck;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.ActionProvider;
@@ -20,6 +18,7 @@ import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.config.ServerConfig;
 import xyz.jinenze.wuhumc.game.Game;
 import xyz.jinenze.wuhumc.network.Payloads;
+import xyz.jinenze.wuhumc.util.PlayerUtil;
 
 import java.util.Collection;
 
@@ -123,7 +122,7 @@ public class ModCommands {
                             } else {
                                 ProcessorManager.get(player).emitListener(game.getNotReadyListener());
                                 ProcessorManager.get(player).setCurrentGame(game);
-                                player.addItem(new ItemStack(ModItems.READY_ITEM));
+                                PlayerUtil.placeReadyItemToPlayer(player);
                             }
                         }
                     }

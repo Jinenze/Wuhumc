@@ -15,7 +15,7 @@ import xyz.jinenze.wuhumc.init.ModItems;
 
 public class NotReadyItem extends Item {
     public NotReadyItem(Properties properties) {
-        super(properties.fireResistant().rarity(Rarity.EPIC).stacksTo(1));
+        super(properties.rarity(Rarity.EPIC));
     }
 
     @Override
@@ -26,7 +26,7 @@ public class NotReadyItem extends Item {
             processor.emitListener(currentGame.getNotReadyListener());
             var inventory = serverPlayer.getInventory();
             inventory.removeItemNoUpdate(inventory.getSelectedSlot());
-            inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.READY_ITEM));
+            inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.READY_ITEM.getItem()));
             serverPlayer.sendSystemMessage(Component.translatable("message.wuhumc.cancel_ready"), true);
         }
         return InteractionResult.PASS;

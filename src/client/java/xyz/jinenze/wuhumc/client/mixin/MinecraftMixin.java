@@ -21,7 +21,7 @@ public abstract class MinecraftMixin {
 
     @Inject(method = "handleKeybinds", at = @At("HEAD"))
     private void handleInputEventsInject(CallbackInfo ci) {
-        if (player.getInventory().getSelectedItem().getItem().equals(ModItems.READY_ITEM) || player.getInventory().getSelectedItem().getItem().equals(ModItems.NOT_READY_ITEM)) {
+        if (player.getInventory().getSelectedItem().getItem().equals(ModItems.READY_ITEM.getItem()) || player.getInventory().getSelectedItem().getItem().equals(ModItems.NOT_READY_ITEM.getItem())) {
             ((KeyMappingInvoker) this.options.keyDrop).wuhumc$reset();
             ((KeyMappingInvoker) this.options.keySwapOffhand).wuhumc$reset();
         }

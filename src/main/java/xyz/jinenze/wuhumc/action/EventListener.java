@@ -4,5 +4,5 @@ import xyz.jinenze.wuhumc.init.ModServerEvents;
 
 import java.util.function.Consumer;
 
-public record EventListener<T>(ModServerEvents event, Consumer<T> action) {
+public record EventListener<T>(Event event, Consumer<T> action) {
 }

@@ -8,7 +8,7 @@ public class ModGames {
 
     public static final WSNZGame WSNZ = new WSNZGame();
 
-    public void register() {
+    public static void register() {
     }
 }
 

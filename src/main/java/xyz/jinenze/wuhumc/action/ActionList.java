@@ -34,6 +34,14 @@ public record ActionList<T>(List<Action<T>> actions) implements ActionProvider<T
             return new ActionList<>(Collections.unmodifiableList(actions));
         }
 
+        public Builder<T> copy() {
+            return new Builder<>(this);
+        }
+
+        private Builder(Builder<T> source) {
+            actions.addAll(source.actions);
+        }
+
         private Builder() {
         }
     }

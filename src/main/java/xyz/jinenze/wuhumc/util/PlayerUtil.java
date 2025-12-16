@@ -28,7 +28,10 @@ public class PlayerUtil {
 //        }
 //    }
     public static void placeReadyItemToPlayer(ServerPlayer player) {
-        player.addItem(player.getInventory().getItem(0));
+        int index = player.getInventory().getFreeSlot();
+        if (!(index == -1)) {
+            player.getInventory().setItem(index, player.getInventory().getItem(0).copy());
+        }
         player.getInventory().setItem(0, new ItemStack(ModItems.READY_ITEM.getItem()));
         player.getInventory().setSelectedSlot(0);
         player.connection.send(new ClientboundSetHeldSlotPacket(0));
@@ -43,6 +46,16 @@ public class PlayerUtil {
 //            }
 //        }
         player.getInventory().removeItemNoUpdate(0);
+    }
+
+    public static void removeCurrentContainerItemsFromPlayer(ServerPlayer player) {
+        player.containerMenu.setCarried(ItemStack.EMPTY);
+        player.containerMenu.slots.forEach(slot -> slot.set(ItemStack.EMPTY));
+    }
+
+    public static void removeInventoryItemsFromPlayer(ServerPlayer player) {
+        player.containerMenu.setCarried(ItemStack.EMPTY);
+        player.inventoryMenu.slots.forEach(slot -> slot.set(ItemStack.EMPTY));
     }
 
     public static void removeItemsFromGround(ServerLevel world) {

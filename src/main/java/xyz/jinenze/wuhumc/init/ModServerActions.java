@@ -55,6 +55,12 @@ public class ModServerActions {
         return true;
     }).build();
 
+    public static final ActionList<ServerPlayer> test1 = ActionList.<ServerPlayer>getBuilder().wait(60).action((player, handler) -> {
+        player.containerMenu.setCarried(ItemStack.EMPTY);
+        player.inventoryMenu.getInputGridSlots().forEach(slot -> slot.set(ItemStack.EMPTY));
+        return true;
+    }).build();
+
     public static final ActionProvider<ServerPlayer> dumbActions = () -> (HasNextIterator<Action<ServerPlayer>>) () -> (player, handler) -> {
         player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 1f, 0.5f);
         player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 9));
@@ -225,8 +231,8 @@ public class ModServerActions {
                     }
                 });
                 context.processors().forEach(processor -> {
-                    processor.getInventoryCacheStack().push(new InventorySnapshot(processor.getPlayer().getInventory()));
-                    processor.getPlayer().getInventory().clearContent();
+                    processor.getInventoryCacheStack().push(new InventorySnapshot(processor.getPlayer()));
+                    PlayerUtil.removeInventoryItemsFromPlayer(processor.getPlayer());
                 });
                 context.processors().getFirst().getCurrentGame().gameStart();
                 ProcessorManager.getServerProcessor().emitActions(context, context.processors().getFirst().getCurrentGame().getGameStartAction());

@@ -17,7 +17,6 @@ import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.action.EventListener;
 import xyz.jinenze.wuhumc.action.impl.WSNZSubGameData;
 import xyz.jinenze.wuhumc.init.ModEventListeners;
-import xyz.jinenze.wuhumc.init.ModGames;
 import xyz.jinenze.wuhumc.init.ModServerEvents;
 import xyz.jinenze.wuhumc.util.PlayerUtil;
 
@@ -35,10 +34,6 @@ public class WSNZGame extends Game {
     }
 
     private static final ItemStack DIAMOND;
-    private static final ArrayList<WSNZSubGameData> stageOneSubGames = getSubGames(StageOneSubGameImpl.values());
-    private static final ArrayList<WSNZSubGameData> stageTwoSubGames = getSubGames(StageTwoSubGameImpl.values());
-    private static final ArrayList<WSNZSubGameData> stageThreeSubGames = getSubGames(StageThreeSubGameImpl.values());
-    private static final List<ArrayList<WSNZSubGameData>> stages = List.of(stageOneSubGames, stageTwoSubGames, stageThreeSubGames);
     private Iterator<ArrayList<WSNZSubGameData>> currentStages;
     private Iterator<WSNZSubGameData> currentSubGames;
     private WSNZSubGameData currentSubGame;
@@ -112,169 +107,7 @@ public class WSNZGame extends Game {
         }
     }
 
-    private static WSNZSubGameData needMonitorSubGame(int delay, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, Function<ServerPlayer, Boolean> monitor) {
-        return new WSNZSubGameData(delay, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
-            var action = newPlayerMonitor(delay, monitor);
-            for (var processor : context.processors()) {
-                processor.emitActions(action);
-                var player = processor.getPlayer();
-                player.connection.send(new ClientboundSetTitleTextPacket(text));
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                player.sendSystemMessage(scoringRule.getMessage());
-            }
-            return false;
-        }).wait(delay).action((context, handler) -> {
-            for (var processor : context.processors()) {
-                var player = processor.getPlayer();
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-            }
-            showPlayersScoreBoard(context);
-            return true;
-        }).build());
-    }
-
-    private static WSNZSubGameData craftItemSubGame(int delay, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
-        return new WSNZSubGameData(delay, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
-            var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
-            context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState(), 0);
-            for (var processor : context.processors()) {
-                var player = processor.getPlayer();
-                for (var supplier : requireItemStacks) {
-                    player.addItem(supplier.get());
-                }
-                player.connection.send(new ClientboundSetTitleTextPacket(text));
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState()));
-                processor.emitListener(listener);
-                player.sendSystemMessage(scoringRule.getMessage());
-            }
-            return false;
-        }).wait(delay).action((context, handler) -> {
-            var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
-            context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.AIR.defaultBlockState(), 0);
-            for (var processor : context.processors()) {
-                var player = processor.getPlayer();
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.AIR.defaultBlockState()));
-                player.getInventory().clearContent();
-                processor.removeListener(listener);
-            }
-            showPlayersScoreBoard(context);
-            PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
-            return true;
-        }).build());
-    }
-
-    private static WSNZSubGameData needItemSubGame(int delay, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
-        return new WSNZSubGameData(delay, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
-            for (var processor : context.processors()) {
-                var player = processor.getPlayer();
-                for (var supplier : requireItemStacks) {
-                    player.addItem(supplier.get());
-                }
-                player.connection.send(new ClientboundSetTitleTextPacket(text));
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                processor.emitListener(listener);
-                player.sendSystemMessage(scoringRule.getMessage());
-            }
-            return false;
-        }).wait(delay).action((context, handler) -> {
-            for (var processor : context.processors()) {
-                processor.getPlayer().getInventory().clearContent();
-                processor.removeListener(listener);
-                var player = processor.getPlayer();
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-            }
-            PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
-            showPlayersScoreBoard(context);
-            return true;
-        }).build());
-    }
-
-    private static WSNZSubGameData basicSubGame(int delay, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener) {
-        return new WSNZSubGameData(delay, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
-            for (var processor : context.processors()) {
-                var player = processor.getPlayer();
-                player.connection.send(new ClientboundSetTitleTextPacket(text));
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                processor.emitListener(listener);
-                player.sendSystemMessage(scoringRule.getMessage());
-            }
-            return false;
-        }).wait(delay).action((context, handler) -> {
-            for (var processor : context.processors()) {
-                processor.removeListener(listener);
-                var player = processor.getPlayer();
-                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-            }
-            showPlayersScoreBoard(context);
-            return true;
-        }).build());
-    }
-
-    private static ArrayList<WSNZSubGameData> getSubGames(SubGameImpl[] values) {
-        ArrayList<WSNZSubGameData> result = new ArrayList<>();
-        Arrays.stream(values).toList().forEach(subGames -> result.add(subGames.getGame()));
-        return result;
-    }
-
-    private interface SubGameImpl {
-        WSNZSubGameData getGame();
-    }
-
-    private enum StageOneSubGameImpl implements SubGameImpl {
-        NOT_BElOW(needMonitorSubGame(40, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_below"), player -> player.getXRot() > 80f)),
-        BELOW(needMonitorSubGame(40, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_below"), player -> player.getXRot() > 80f)),
-        NOT_ABOVE(needMonitorSubGame(40, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_above"), player -> player.getXRot() < -80f)),
-        ABOVE(needMonitorSubGame(40, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_above"), player -> player.getXRot() < -80f)),
-        CRAFT_AXE(craftItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_craft_axe"), ModEventListeners.PLAYER_CRAFTED_DIAMOND_AXE, List.of(() -> new ItemStack(Items.DIAMOND, 3), () -> new ItemStack(Items.STICK, 2)))),
-        DIAMOND_GIFT(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_diamond_gift"), ModEventListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, List.of(DIAMOND::copy))),
-        SNEAK(basicSubGame(60, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_sneak"), ModEventListeners.PLAYER_SHIFT_DOWN)),
-        FALL_VOID(basicSubGame(60, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_fall_void"), ModEventListeners.PLAYER_FALL_VOID)),
-        ;
-        private final WSNZSubGameData game;
-
-        @Override
-        public WSNZSubGameData getGame() {
-            return game;
-        }
-
-        StageOneSubGameImpl(WSNZSubGameData game) {
-            this.game = game;
-        }
-    }
-
-    private enum StageTwoSubGameImpl implements SubGameImpl {
-        NOT_BElOW(needMonitorSubGame(40, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_below"), player -> player.getXRot() > 80f)),
-        ;
-        private final WSNZSubGameData game;
-
-        @Override
-        public WSNZSubGameData getGame() {
-            return game;
-        }
-
-        StageTwoSubGameImpl(WSNZSubGameData game) {
-            this.game = game;
-        }
-    }
-
-    private enum StageThreeSubGameImpl implements SubGameImpl {
-        NOT_BElOW(needMonitorSubGame(40, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_below"), player -> player.getXRot() > 80f)),
-        ;
-        private final WSNZSubGameData game;
-
-        @Override
-        public WSNZSubGameData getGame() {
-            return game;
-        }
-
-        StageThreeSubGameImpl(WSNZSubGameData game) {
-            this.game = game;
-        }
-    }
-
-    public static final ActionList<ServerActionContext> WSMZ_REFRESH = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
+    private static final ActionList.Builder<ServerActionContext> REFRESH_ACTIONS = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_1")));
@@ -298,8 +131,113 @@ public class WSNZGame extends Game {
     }).wait(30).action((context, handler) -> {
         var game = ((WSNZGame) context.processors().getFirst().getCurrentGame()).getCurrentSubGame();
         ProcessorManager.getServerProcessor().emitActions(context, showPlayerCounterDown(game.totalTime()));
-        return true;
-    }).build();
+        return false;
+    });
+
+    private static final ArrayList<WSNZSubGameData> stageOneSubGames = getSubGames(StageOneSubGameImpl.values());
+    private static final ArrayList<WSNZSubGameData> stageTwoSubGames = getSubGames(StageTwoSubGameImpl.values());
+    private static final ArrayList<WSNZSubGameData> stageThreeSubGames = getSubGames(StageThreeSubGameImpl.values());
+    private static final List<ArrayList<WSNZSubGameData>> stages = List.of(stageOneSubGames, stageTwoSubGames, stageThreeSubGames);
+
+    private static WSNZSubGameData needMonitorSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, Function<ServerPlayer, Boolean> monitor) {
+        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+            var action = newPlayerMonitor(totalTime, monitor);
+            for (var processor : context.processors()) {
+                processor.emitActions(action);
+                var player = processor.getPlayer();
+                player.connection.send(new ClientboundSetTitleTextPacket(text));
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                player.sendSystemMessage(scoringRule.getMessage());
+            }
+            return false;
+        }).wait(totalTime).action((context, handler) -> {
+            for (var processor : context.processors()) {
+                var player = processor.getPlayer();
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            }
+            showPlayersScoreBoard(context);
+            return true;
+        }).build());
+    }
+
+    private static WSNZSubGameData craftItemSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
+        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+            var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
+            context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState(), 0);
+            for (var processor : context.processors()) {
+                var player = processor.getPlayer();
+                for (var supplier : requireItemStacks) {
+                    player.addItem(supplier.get());
+                }
+                player.connection.send(new ClientboundSetTitleTextPacket(text));
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState()));
+                processor.emitListener(listener);
+                player.sendSystemMessage(scoringRule.getMessage());
+            }
+            return false;
+        }).wait(totalTime).action((context, handler) -> {
+            var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
+            context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.AIR.defaultBlockState(), 0);
+            for (var processor : context.processors()) {
+                var player = processor.getPlayer();
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.AIR.defaultBlockState()));
+                PlayerUtil.removeCurrentContainerItemsFromPlayer(player);
+                processor.removeListener(listener);
+            }
+            showPlayersScoreBoard(context);
+            PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
+            return true;
+        }).build());
+    }
+
+    private static WSNZSubGameData needItemSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
+        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+            for (var processor : context.processors()) {
+                var player = processor.getPlayer();
+                for (var supplier : requireItemStacks) {
+                    player.addItem(supplier.get());
+                }
+                player.connection.send(new ClientboundSetTitleTextPacket(text));
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                processor.emitListener(listener);
+                player.sendSystemMessage(scoringRule.getMessage());
+            }
+            return false;
+        }).wait(totalTime).action((context, handler) -> {
+            for (var processor : context.processors()) {
+                var player = processor.getPlayer();
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                PlayerUtil.removeCurrentContainerItemsFromPlayer(processor.getPlayer());
+                processor.removeListener(listener);
+            }
+            PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
+            showPlayersScoreBoard(context);
+            return true;
+        }).build());
+    }
+
+    private static WSNZSubGameData basicSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener) {
+        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+            for (var processor : context.processors()) {
+                var player = processor.getPlayer();
+                player.connection.send(new ClientboundSetTitleTextPacket(text));
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+                processor.emitListener(listener);
+                player.sendSystemMessage(scoringRule.getMessage());
+            }
+            return false;
+        }).wait(totalTime).action((context, handler) -> {
+            for (var processor : context.processors()) {
+                processor.removeListener(listener);
+                var player = processor.getPlayer();
+                player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
+            }
+            showPlayersScoreBoard(context);
+            return true;
+        }).build());
+    }
 
     public static final ActionProvider<ServerActionContext> WSNZ_LOOP = () -> new HasNextIterator<>() {
         private final Queue<ActionsHandler<ServerActionContext>> handlers = new LinkedList<>();
@@ -310,7 +248,6 @@ public class WSNZGame extends Game {
                 if (handlers.isEmpty()) {
                     var game = (WSNZGame) context.processors().getFirst().getCurrentGame();
                     if (game.hasNext()) {
-                        handlers.add(new ActionsHandler<>(context, WSMZ_REFRESH));
                         handlers.add(new ActionsHandler<>(context, game.next(context).actions()));
                     } else {
                         ProcessorManager.getServerProcessor().emitActions(context, GAME_END);
@@ -327,8 +264,8 @@ public class WSNZGame extends Game {
     };
 
     public static final ActionList<ServerActionContext> WSNZ_MAIN = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
+        context.processors().getFirst().getCurrentGame().gameStart();
         for (var processor : context.processors()) {
-            ModGames.WSNZ.gameStart();
             PlayerUtil.setSpawnPoint(processor.getPlayer(), Wuhumc.config.game_settings_wsnz.game_position_wsnz);
             PlayerUtil.ejectPlayer(processor.getPlayer());
         }
@@ -337,4 +274,66 @@ public class WSNZGame extends Game {
         ProcessorManager.getServerProcessor().emitActions(context, WSNZ_LOOP);
         return true;
     })).build();
+
+    private interface SubGameImpl {
+        WSNZSubGameData getGame();
+    }
+
+    private enum StageOneSubGameImpl implements SubGameImpl {
+        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_below"), player -> player.getXRot() > 80f)),
+        BELOW(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_below"), player -> player.getXRot() > 80f)),
+        NOT_ABOVE(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_above"), player -> player.getXRot() < -80f)),
+        ABOVE(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_above"), player -> player.getXRot() < -80f)),
+        CRAFT_AXE(craftItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_craft_axe"), ModEventListeners.PLAYER_CRAFTED_DIAMOND_AXE, List.of(() -> new ItemStack(Items.DIAMOND, 3), () -> new ItemStack(Items.STICK, 2)))),
+        DIAMOND_GIFT(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_diamond_gift"), ModEventListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, List.of(DIAMOND::copy))),
+        SNEAK(basicSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_sneak"), ModEventListeners.PLAYER_SHIFT_DOWN)),
+        FALL_VOID(basicSubGame(60, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_1_fall_void"), ModEventListeners.PLAYER_FALL_VOID)),
+        ;
+        private final WSNZSubGameData game;
+
+        @Override
+        public WSNZSubGameData getGame() {
+            return game;
+        }
+
+        StageOneSubGameImpl(WSNZSubGameData game) {
+            this.game = game;
+        }
+    }
+
+    private enum StageTwoSubGameImpl implements SubGameImpl {
+        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_below"), player -> player.getXRot() > 80f)),
+        ;
+        private final WSNZSubGameData game;
+
+        @Override
+        public WSNZSubGameData getGame() {
+            return game;
+        }
+
+        StageTwoSubGameImpl(WSNZSubGameData game) {
+            this.game = game;
+        }
+    }
+
+    private enum StageThreeSubGameImpl implements SubGameImpl {
+        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_1_not_below"), player -> player.getXRot() > 80f)),
+        ;
+        private final WSNZSubGameData game;
+
+        @Override
+        public WSNZSubGameData getGame() {
+            return game;
+        }
+
+        StageThreeSubGameImpl(WSNZSubGameData game) {
+            this.game = game;
+        }
+    }
+
+    private static ArrayList<WSNZSubGameData> getSubGames(SubGameImpl[] values) {
+        ArrayList<WSNZSubGameData> result = new ArrayList<>();
+        Arrays.stream(values).toList().forEach(subGames -> result.add(subGames.getGame()));
+        return result;
+    }
 }

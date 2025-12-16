@@ -31,7 +31,6 @@ public class ModCommands {
                 literal("wuhumc"
                 ).then(literal("action").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("dumbactions").then(emitPlayerActions(ModServerActions.dumbActions)))
-                        .then(literal("test").then(emitPlayerActions(ModServerActions.test)))
                         .then(literal("newmoniter").executes(context -> {
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getXRot()));
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("" + context.getSource().getPlayer().getYRot()));
@@ -80,6 +79,9 @@ public class ModCommands {
                             }
                             return 1;
                         }))
+                ).then(literal("test").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(literal("scoreboard").then(emitPlayerActions(ModServerActions.test)))
+                        .then(literal("clearinventory").then(emitPlayerActions(ModServerActions.test1)))
                 )
         ));
     }

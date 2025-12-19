@@ -1,13 +1,11 @@
 package xyz.jinenze.wuhumc.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -24,13 +22,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.action.ServerPlayerProcessor;
 import xyz.jinenze.wuhumc.init.ModServerActions;
-import xyz.jinenze.wuhumc.init.ModServerEvents;
+import xyz.jinenze.wuhumc.init.ModEvents;
 import xyz.jinenze.wuhumc.util.ServerPlayerMixinGetter;
 
 import java.util.List;
 
 @Mixin(ServerPlayer.class)
-abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGetter {
+public abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGetter {
     @Unique
     private final ServerPlayerProcessor processor = ProcessorManager.createOrRefresh((ServerPlayer) (Object) this);
 
@@ -41,16 +39,14 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
 
     @Inject(method = "triggerRecipeCrafted", at = @At("TAIL"))
     private void craftedInject(RecipeHolder<?> recipeHolder, List<ItemStack> list, CallbackInfo ci) {
-        if (recipeHolder.id().equals(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("diamond_axe")))) {
-            processor.event(ModServerEvents.PLAYER_CRAFTED_DIAMOND_AXE);
-        }
+        processor.emitEventToAll(new ModEvents.CraftEvent(recipeHolder.id()));
     }
 
     @Inject(method = "onItemPickup", at = @At("TAIL"))
-    public void onItemPickupInject(ItemEntity itemEntity, CallbackInfo ci) {
+    private void onItemPickupInject(ItemEntity itemEntity, CallbackInfo ci) {
         super.onItemPickup(itemEntity);
-        if (!level().isClientSide() && itemEntity.getItem().getItem().equals(Items.DIAMOND) && itemEntity.getOwner() instanceof ServerPlayer serverOwner && !serverOwner.equals(this)) {
-            ProcessorManager.get(serverOwner).event(ModServerEvents.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND);
+        if (itemEntity.getOwner() instanceof ServerPlayer owner && !owner.equals(this) && itemEntity.getItem().getItem().equals(Items.DIAMOND)) {
+            ProcessorManager.get(owner).emitEventToAll(ModEvents.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND);
         }
     }
 
@@ -62,6 +58,13 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
     @Shadow
     public abstract @NotNull ServerLevel level();
 
+    @Inject(method = "die", at = @At("TAIL"))
+    private void dieInject(DamageSource damageSource, CallbackInfo ci) {
+        if (damageSource.getEntity() instanceof ServerPlayer source && !source.equals(this)) {
+            ProcessorManager.get(source).emitEventToAll(ModEvents.PLAYER_KILLED_ANOTHER_PLAYER);
+        }
+    }
+
     @Override
     public void lavaHurt() {
         this.kill(this.level());
@@ -69,7 +72,7 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
 
     @Override
     protected void onBelowWorld() {
-        ProcessorManager.get((ServerPlayer) (Object) this).event(ModServerEvents.PLAYER_FALL_VOID);
+        processor.emitEventToAll(ModEvents.PLAYER_FALL_VOID);
         this.kill(this.level());
     }
 
@@ -77,7 +80,7 @@ abstract class ServerPlayerMixin extends Player implements ServerPlayerMixinGett
     public void setShiftKeyDown(boolean bl) {
         super.setShiftKeyDown(bl);
         if (bl) {
-            processor.event(ModServerEvents.PLAYER_SHIFT_DOWN);
+            processor.emitEventToAll(ModEvents.PLAYER_SHIFT_DOWN);
         }
     }
 

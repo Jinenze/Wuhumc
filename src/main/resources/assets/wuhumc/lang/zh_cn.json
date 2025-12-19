@@ -27,7 +27,8 @@
   "message.wuhumc.game_wsnz_scoring_rule_infinite": "§2所有完成的人都能获得分数！",
   "message.wuhumc.game_wsnz_scoring_rule_top_one": "§2只有一个人能获得分数！",
   "message.wuhumc.game_wsnz_scoring_rule_top_half": "只有一半的人能获得分数",
-  "message.wuhumc.scores_player_based_3": "只有1/3的幸运儿能获得分数",
+  "message.wuhumc.game_wsnz_scoring_rule_top_decrease": "分数随名次递减",
+  "message.wuhumc.game_wsnz_scoring_rule_top_three": "只有前三名能获得分数",
   "title.wuhumc.game_cancel": "取消",
   "title.wuhumc.game_countdown_5": "5",
   "title.wuhumc.game_countdown_4": "4",
@@ -48,5 +49,9 @@
   "title.wuhumc.game_wsnz_1_above": "抬头",
   "title.wuhumc.game_wsnz_1_not_above": "不要抬头",
   "title.wuhumc.game_wsnz_1_below": "低头",
-  "title.wuhumc.game_wsnz_1_not_below": "不要低头"
+  "title.wuhumc.game_wsnz_1_not_below": "不要低头",
+  "title.wuhumc.game_wsnz_2_player_duel": "杀！",
+  "title.wuhumc.game_wsnz_2_craft_full_iron_armor": "做一套铁护甲",
+  "title.wuhumc.game_wsnz_3_horse_duel": "杀！",
+  "title.wuhumc.spawn_point": "§6重生点已设置"
 }

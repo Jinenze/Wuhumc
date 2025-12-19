@@ -6,6 +6,8 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -83,5 +85,13 @@ public class PlayerUtil {
 
     public static void setSpawnPoint(ServerPlayer player, ServerConfig.GamePosition config) {
         player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(Level.OVERWORLD, new BlockPos(config.x, config.y, config.z)), 0, 0), true), false);
+    }
+
+    public static void addScoreAndShowMessage(ServerPlayer player) {
+        ProcessorManager.get(player).getCurrentGame().addScore(player);
+    }
+
+    public static void teleportTo(ServerPlayer player, Vec3 pos) {
+        player.connection.teleport(new PositionMoveRotation(pos, Vec3.ZERO, 0.0F, 0.0F), Relative.union(Relative.DELTA, Relative.ROTATION));
     }
 }

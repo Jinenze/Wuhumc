@@ -26,7 +26,6 @@ public class Wuhumc implements ModInitializer {
         config = AutoConfig.getConfigHolder(ServerConfigWrapper.class).getConfig().server;
         ProcessorManager.register();
         ModCommands.register();
-        ModEventListeners.register();
         ModGames.register();
         ModItems.register();
         ModServerActions.register();

@@ -63,7 +63,7 @@ public class ModServerActions {
 
     public static final ActionProvider<ServerPlayer> dumbActions = () -> (HasNextIterator<Action<ServerPlayer>>) () -> (player, handler) -> {
         player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 1f, 0.5f);
-        player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 9));
+        player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
         handler.setDelay(1);
         return false;
     };
@@ -77,7 +77,7 @@ public class ModServerActions {
         context.processors().forEach(processor -> ServerPlayNetworking.send(processor.getPlayer(), new Payloads.ShowScoreBoardS2CPayload(map)));
     }
 
-    public static ActionProvider<ServerActionContext> showPlayerCounterDown(int delay) {
+    public static ActionProvider<ServerActionContext> newShowPlayerCountdownAction(int delay) {
         return () -> new HasNextIterator<>() {
             private int count = delay;
             private final Action<ServerActionContext> action = (context, handler) -> {
@@ -101,7 +101,7 @@ public class ModServerActions {
             private int lifeTime = delay;
             private final Action<ServerPlayer> action = (player, handler) -> {
                 if (monitor.apply(player)) {
-                    ModEventListeners.addScoreAndShowMessage(player);
+                    PlayerUtil.addScoreAndShowMessage(player);
                     return true;
                 }
                 --lifeTime;
@@ -118,18 +118,13 @@ public class ModServerActions {
 
     public static final ActionList<ServerPlayer> RESPAWN_FLY = ActionList.<ServerPlayer>getBuilder().action((player, handler) -> {
         if (Wuhumc.config.respawn_fly_enabled) {
+            handler.customData().put("position", player.position());
             player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(0, 10, 0)));
             return false;
         }
         return true;
     }).wait(65).action((player, handler) -> {
-        if (player.getRespawnConfig() != null) {
-            var pos = player.getRespawnConfig().respawnData().pos().getBottomCenter();
-            player.teleportTo(pos.x(), pos.y(), pos.z());
-        } else {
-            var pos = player.level().getRespawnData().pos().getBottomCenter();
-            player.teleportTo(pos.x(), pos.y(), pos.z());
-        }
+            PlayerUtil.teleportTo(player, (Vec3) handler.customData().get("position"));
         return true;
     }).build();
 
@@ -193,7 +188,7 @@ public class ModServerActions {
 
     private static boolean countdown(ServerActionContext context, String key) {
         for (var processor : context.processors()) {
-            if (processor.event(processor.getCurrentGame().getOnReadyEvent())) {
+            if (processor.emitEventToFirstMatch(processor.getCurrentGame().getOnReadyEvent())) {
                 for (var anotherProcessor : context.processors()) {
                     anotherProcessor.getPlayer().connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_cancel")));
                 }

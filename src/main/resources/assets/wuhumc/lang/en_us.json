@@ -27,7 +27,8 @@
   "message.wuhumc.game_wsnz_scoring_rule_infinite": "§2everyone can get point",
   "message.wuhumc.game_wsnz_scoring_rule_top_one": "§2only one player can get point",
   "message.wuhumc.game_wsnz_scoring_rule_top_half": "only half players can get point",
-  "message.wuhumc.scores_player_based_3": "only one-third players can get point",
+  "message.wuhumc.game_wsnz_scoring_rule_top_decrease": "decreasing",
+  "message.wuhumc.game_wsnz_scoring_rule_top_three": "top three",
   "title.wuhumc.game_cancel": "cancel",
   "title.wuhumc.game_countdown_5": "5",
   "title.wuhumc.game_countdown_4": "4",
@@ -48,5 +49,9 @@
   "title.wuhumc.game_wsnz_1_above": "above",
   "title.wuhumc.game_wsnz_1_not_above": "not above",
   "title.wuhumc.game_wsnz_1_below": "below",
-  "title.wuhumc.game_wsnz_1_not_below": "not below"
+  "title.wuhumc.game_wsnz_1_not_below": "not below",
+  "title.wuhumc.game_wsnz_2_player_duel": "fight!",
+  "title.wuhumc.game_wsnz_2_craft_full_iron_armor": "craft full iron armor",
+  "title.wuhumc.game_wsnz_3_horse_duel": "fight",
+  "title.wuhumc.spawn_point": "§6Spawn point"
 }

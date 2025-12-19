@@ -1,13 +1,16 @@
 package xyz.jinenze.wuhumc.action;
 
 import net.minecraft.world.entity.player.Player;
-import xyz.jinenze.wuhumc.init.ModServerEvents;
 
 public class PlayerProcessor<T extends Player> extends Processor<T> {
     protected T player;
 
-    public boolean event(ModServerEvents event) {
-        return super.event(player, event);
+    public boolean emitEventToFirstMatch(Event event) {
+        return super.emitEventToFirstMatch(player, event);
+    }
+
+    public void emitEventToAll(Event event) {
+        super.emitEventToAll(player, event);
     }
 
     public void emitActions(ActionProvider<T> actions) {

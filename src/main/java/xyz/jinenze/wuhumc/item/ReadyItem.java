@@ -34,7 +34,7 @@ public class ReadyItem extends Item {
             inventory.removeItemNoUpdate(inventory.getSelectedSlot());
             inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.NOT_READY_ITEM.getItem()));
             for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
-                if (ProcessorManager.get(anotherPlayer).event(currentGame.getOnReadyEvent())) {
+                if (ProcessorManager.get(anotherPlayer).emitEventToFirstMatch(currentGame.getOnReadyEvent())) {
                     return InteractionResult.PASS;
                 }
             }

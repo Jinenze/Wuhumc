@@ -29,12 +29,32 @@ public class Processor<T> {
         actionProcessing = false;
     }
 
-    public boolean event(T input, Event event) {
+    public boolean emitEventToFirstMatch(T input, Event event) {
         // Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
         listenerProcessing = true;
-        boolean result = listeners.removeIf((listener) -> {
-            if (listener.event().equals(event)) {
-                listener.action().accept(input);
+        var iterator = listeners.iterator();
+        boolean result = false;
+        while (iterator.hasNext()) {
+            var listener = iterator.next();
+            if (listener.getEvent().equals(event)) {
+                listener.getAction().accept(input);
+                iterator.remove();
+                result = true;
+                break;
+            }
+        }
+        listeners.addAll(listenersCache);
+        listenersCache.clear();
+        listenerProcessing = false;
+        return result;
+    }
+
+    public void emitEventToAll(T input, Event event) {
+        // Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
+        listenerProcessing = true;
+        listeners.removeIf((listener) -> {
+            if (listener.getEvent().equals(event)) {
+                listener.getAction().accept(input);
                 return true;
             }
             return false;
@@ -42,7 +62,6 @@ public class Processor<T> {
         listeners.addAll(listenersCache);
         listenersCache.clear();
         listenerProcessing = false;
-        return result;
     }
 
     public void emitActions(T input, ActionProvider<T> actions) {

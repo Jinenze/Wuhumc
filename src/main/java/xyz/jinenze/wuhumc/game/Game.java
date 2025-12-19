@@ -5,17 +5,17 @@ import xyz.jinenze.wuhumc.action.ActionList;
 import xyz.jinenze.wuhumc.action.EventListener;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.action.ServerActionContext;
-import xyz.jinenze.wuhumc.init.ModServerEvents;
+import xyz.jinenze.wuhumc.init.ModEvents;
 
 public class Game {
     private boolean running;
-    private final ModServerEvents onReadyEvent;
+    private final ModEvents onReadyEvent;
     private final ActionList<ServerActionContext> gameStartAction;
     private final EventListener<ServerPlayer> notReadyListener;
 
     public boolean gameStartPlayerEjectDirection = false;
 
-    public Game(ModServerEvents onReadyEvent, ActionList<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
+    public Game(ModEvents onReadyEvent, ActionList<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
         this.onReadyEvent = onReadyEvent;
         this.gameStartAction = gameStartAction;
         this.notReadyListener = notReadyListener;
@@ -37,7 +37,7 @@ public class Game {
         ProcessorManager.get(player).addCurrentScore(1);
     }
 
-    public ModServerEvents getOnReadyEvent() {
+    public ModEvents getOnReadyEvent() {
         return onReadyEvent;
     }
 

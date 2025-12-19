@@ -54,8 +54,21 @@ public class Payloads {
         }
     }
 
+    public record SetRespawnMusicS2CPayload(boolean bl) implements CustomPacketPayload {
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "set_respawn_music");
+        public static final Type<SetRespawnMusicS2CPayload> TYPE = new CustomPacketPayload.Type<>(ID);
+        public static final StreamCodec<RegistryFriendlyByteBuf, SetRespawnMusicS2CPayload> CODEC = StreamCodec.composite(ByteBufCodecs.BOOL, SetRespawnMusicS2CPayload::bl, SetRespawnMusicS2CPayload::new);
+
+        @Override
+        public Type<SetRespawnMusicS2CPayload> type() {
+            return TYPE;
+        }
+    }
+
     public static void register() {
         PayloadTypeRegistry.playC2S().register(ServerConfigC2SPayload.TYPE, ServerConfigC2SPayload.CODEC);
+
         PayloadTypeRegistry.playS2C().register(ShowScoreBoardS2CPayload.TYPE, ShowScoreBoardS2CPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(SetRespawnMusicS2CPayload.TYPE, SetRespawnMusicS2CPayload.CODEC);
     }
 }

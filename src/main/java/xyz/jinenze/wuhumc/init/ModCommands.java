@@ -51,7 +51,6 @@ public class ModCommands {
                             return 1;
                         })))
                 ).then(literal("listener").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                        .then(literal("nswznotready").then(listen(ModEventListeners.PLAYER_WSNZ_READY_PLAYER_NOT_READY)))
                         .then(literal("clear").then(argument("targets", EntityArgument.players())
                                 .executes(context -> {
                                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
@@ -72,6 +71,9 @@ public class ModCommands {
                             Wuhumc.config.respawn_fly_enabled = (BoolArgumentType.getBool(context, "bool"));
                             return 1;
                         })))
+                        .then(literal("respawnmusic")
+                                .then(literal("false").then(setPlayerConfig(false)))
+                                .then(literal("true").then(setPlayerConfig(true))))
                         .then(literal("nswzposition").then(setGamePosition(Wuhumc.config.game_settings_wsnz.game_position_wsnz)))
                         .then(literal("download").executes(context -> {
                             if (context.getSource().getPlayer() != null) {
@@ -126,6 +128,19 @@ public class ModCommands {
                                 ProcessorManager.get(player).setCurrentGame(game);
                                 PlayerUtil.placeReadyItemToPlayer(player);
                             }
+                        }
+                    }
+                    return collection.size();
+                });
+    }
+
+    private static ArgumentBuilder<CommandSourceStack, ?> setPlayerConfig(boolean bl) {
+        return argument("targets", EntityArgument.players())
+                .executes(context -> {
+                    Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
+                    if (!collection.isEmpty()) {
+                        for (ServerPlayer player : collection) {
+                            ServerPlayNetworking.send(player, new Payloads.SetRespawnMusicS2CPayload(bl));
                         }
                     }
                     return collection.size();

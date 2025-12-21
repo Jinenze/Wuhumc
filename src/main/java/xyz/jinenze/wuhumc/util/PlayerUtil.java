@@ -77,11 +77,11 @@ public class PlayerUtil {
         player.teleportTo(pos.x(), pos.y(), pos.z());
     }
 
-    public static void ejectPlayer(ServerPlayer player) {
-        resetPlayerPosition(player);
-        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection ? 1 : -1, 0.5, 0)));
-        ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection = !ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection;
-    }
+//    public static void ejectPlayer(ServerPlayer player) {
+//        resetPlayerPosition(player);
+//        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection ? 1 : -1, 0.5, 0)));
+//        ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection = !ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection;
+//    }
 
     public static void setSpawnPoint(ServerPlayer player, ServerConfig.GamePosition config) {
         player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(Level.OVERWORLD, new BlockPos(config.x, config.y, config.z)), 0, 0), true), false);

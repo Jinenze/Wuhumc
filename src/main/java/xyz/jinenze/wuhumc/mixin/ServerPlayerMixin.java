@@ -80,7 +80,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerMi
     public void setShiftKeyDown(boolean bl) {
         super.setShiftKeyDown(bl);
         if (bl) {
-            processor.emitEventToAll(ModEvents.PLAYER_SHIFT_DOWN);
+            processor.emitEventToAll(ModEvents.PLAYER_SNEAK);
         }
     }
 

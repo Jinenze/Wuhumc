@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -77,7 +78,7 @@ public class ModServerActions {
         context.processors().forEach(processor -> ServerPlayNetworking.send(processor.getPlayer(), new Payloads.ShowScoreBoardS2CPayload(map)));
     }
 
-    public static ActionProvider<ServerActionContext> newShowPlayerCountdownAction(int delay) {
+    public static ActionProvider<ServerActionContext> displayCountdown(int delay) {
         return () -> new HasNextIterator<>() {
             private int count = delay;
             private final Action<ServerActionContext> action = (context, handler) -> {
@@ -145,7 +146,7 @@ public class ModServerActions {
             var turtle = new Turtle(EntityType.TURTLE, level);
             turtle.setCustomName(Component.literal(maxProcessor.getPlayer().getGameProfile().name()));
             turtle.setPos(level.getRespawnData().pos().getBottomCenter());
-            turtle.addEffect(new MobEffectInstance(MobEffects.REGENERATION, -1, 255, false, false));
+            turtle.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, -1, 255, false, false));
             level.addFreshEntity(turtle);
         } else {
             var itemStack = new ItemStack(Items.TURTLE_HELMET);

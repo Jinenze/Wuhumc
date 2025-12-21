@@ -13,7 +13,7 @@ public class Game {
     private final ActionList<ServerActionContext> gameStartAction;
     private final EventListener<ServerPlayer> notReadyListener;
 
-    public boolean gameStartPlayerEjectDirection = false;
+//    public boolean gameStartPlayerEjectDirection = false;
 
     public Game(ModEvents onReadyEvent, ActionList<ServerActionContext> gameStartAction, EventListener<ServerPlayer> notReadyListener) {
         this.onReadyEvent = onReadyEvent;

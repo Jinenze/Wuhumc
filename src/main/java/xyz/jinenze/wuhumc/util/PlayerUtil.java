@@ -39,13 +39,6 @@ public class PlayerUtil {
     }
 
     public static void removeReadyItemFromPlayer(ServerPlayer player) {
-        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
-            var itemStack = player.getInventory().getItem(index);
-            var item = itemStack.getItem();
-            if (isInReadyItems(item)) {
-                player.getInventory().removeItemNoUpdate(index);
-            }
-        }
     }
 
     public static void removeCurrentContainerItemsFromPlayer(ServerPlayer player) {
@@ -66,7 +59,7 @@ public class PlayerUtil {
         });
     }
 
-    public static boolean isInReadyItems(Item item) {
+    public static boolean isReadyItems(Item item) {
         return item.equals(ModItems.NOT_READY_ITEM.getItem()) || item.equals(ModItems.READY_ITEM.getItem());
     }
 

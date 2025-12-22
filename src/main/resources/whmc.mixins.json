@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ServerPlayerMixin",
-    "WeightedPressurePlateBlockMixin"
+    "BasePressurePlateBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

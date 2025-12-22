@@ -17,14 +17,14 @@ public abstract class SlotMixin {
 
     @Inject(method = "mayPickup", at = @At("HEAD"), cancellable = true)
     private void mayPickupInject(Player playerEntity, CallbackInfoReturnable<Boolean> cir) {
-        if (PlayerUtil.isInReadyItems(getItem().getItem())) {
+        if (PlayerUtil.isReadyItems(getItem().getItem())) {
             cir.setReturnValue(false);
         }
     }
 
     @Inject(method = "mayPlace", at = @At("HEAD"), cancellable = true)
     private void mayPlaceInject(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
-        if (PlayerUtil.isInReadyItems(itemStack.getItem())) {
+        if (PlayerUtil.isReadyItems(itemStack.getItem())) {
             cir.setReturnValue(false);
         }
     }

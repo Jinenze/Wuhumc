@@ -63,7 +63,11 @@ public class ModServerActions {
     }).build();
 
     public static final ActionList<ServerPlayer> clearReadyItem = ActionList.<ServerPlayer>getBuilder().wait(60).action((player, handler) -> {
-        PlayerUtil.removeReadyItemFromPlayer(player);
+        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
+            if (PlayerUtil.isReadyItems(player.getInventory().getItem(index).getItem())) {
+                player.getInventory().removeItemNoUpdate(index);
+            }
+        }
         return true;
     }).build();
 
@@ -166,8 +170,7 @@ public class ModServerActions {
                 ProcessorManager.get(player).setCurrentGame(ModGames.NULL);
                 player.setRespawnPosition(null, false);
                 player.setGameMode(GameType.ADVENTURE);
-                var pos = level.getRespawnData().pos().getBottomCenter();
-                player.teleportTo(pos.x(), pos.y(), pos.z());
+                PlayerUtil.teleportTo(player, level.getRespawnData().pos().getBottomCenter());
             }
         }
 

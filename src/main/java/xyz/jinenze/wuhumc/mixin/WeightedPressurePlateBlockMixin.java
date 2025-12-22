@@ -27,8 +27,8 @@ public abstract class WeightedPressurePlateBlockMixin extends BasePressurePlateB
 
     @Override
     protected void entityInside(BlockState blockState, Level level, BlockPos blockPos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier, boolean bl) {
-        if (entity instanceof ServerPlayer player) {
-            if (blockState.getBlock().equals(Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE)) {
+        if (blockState.getBlock().equals(Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE)) {
+            if (entity instanceof ServerPlayer player) {
                 if (player.getRespawnConfig() == null) {
                     player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(level.dimension(), blockPos.above(1)), 0, 0), true), false);
                     player.sendSystemMessage(Component.translatable("title.wuhumc.spawn_point"), true);
@@ -44,6 +44,8 @@ public abstract class WeightedPressurePlateBlockMixin extends BasePressurePlateB
                     Wuhumc.LOGGER.info(blockPos.toShortString());
                 }
             }
+        } else {
+            super.entityInside(blockState, level, blockPos, entity, insideBlockEffectApplier, bl);
         }
     }
 }

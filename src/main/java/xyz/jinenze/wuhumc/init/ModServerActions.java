@@ -62,6 +62,11 @@ public class ModServerActions {
         return true;
     }).build();
 
+    public static final ActionList<ServerPlayer> clearReadyItem = ActionList.<ServerPlayer>getBuilder().wait(60).action((player, handler) -> {
+        PlayerUtil.removeReadyItemFromPlayer(player);
+        return true;
+    }).build();
+
     public static final ActionProvider<ServerPlayer> dumbActions = () -> (HasNextIterator<Action<ServerPlayer>>) () -> (player, handler) -> {
         player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 1f, 0.5f);
         player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
@@ -219,7 +224,7 @@ public class ModServerActions {
     ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_1")
     ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_end")
     ).action((context, handler) -> {
-                context.processors().forEach(processor -> PlayerUtil.removeReadyItemFromPlayer(processor.getPlayer()));
+                context.processors().forEach(processor -> processor.getPlayer().getInventory().removeItemNoUpdate(0));
                 ProcessorManager.getServerProcessor().planToRemoveRunningActions(new Supplier<>() {
                     @Override
                     public ActionProvider<ServerActionContext> get() {

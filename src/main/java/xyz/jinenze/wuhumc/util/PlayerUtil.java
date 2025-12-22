@@ -2,7 +2,6 @@ package xyz.jinenze.wuhumc.util;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,7 +28,7 @@ public class PlayerUtil {
 //            }
 //        }
 //    }
-    public static void placeReadyItemToPlayer(ServerPlayer player) {
+    public static void placeReadyItemToIndexZero(ServerPlayer player) {
         int index = player.getInventory().getFreeSlot();
         if (!(index == -1)) {
             player.getInventory().setItem(index, player.getInventory().getItem(0).copy());
@@ -40,14 +39,13 @@ public class PlayerUtil {
     }
 
     public static void removeReadyItemFromPlayer(ServerPlayer player) {
-//        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
-//            var itemStack = player.getInventory().getItem(index);
-//            var item = itemStack.getItem();
-//            if (isInReadyItems(item)) {
-//                player.getInventory().removeItemNoUpdate(index);
-//            }
-//        }
-        player.getInventory().removeItemNoUpdate(0);
+        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
+            var itemStack = player.getInventory().getItem(index);
+            var item = itemStack.getItem();
+            if (isInReadyItems(item)) {
+                player.getInventory().removeItemNoUpdate(index);
+            }
+        }
     }
 
     public static void removeCurrentContainerItemsFromPlayer(ServerPlayer player) {

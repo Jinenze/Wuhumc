@@ -66,11 +66,6 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerMi
     }
 
     @Override
-    public void lavaHurt() {
-        this.kill(this.level());
-    }
-
-    @Override
     protected void onBelowWorld() {
         processor.emitEventToAll(ModEvents.PLAYER_FALL_VOID);
         this.kill(this.level());

@@ -21,8 +21,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.action.ServerPlayerProcessor;
-import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.init.ModEvents;
+import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.util.ServerPlayerMixinGetter;
 
 import java.util.List;

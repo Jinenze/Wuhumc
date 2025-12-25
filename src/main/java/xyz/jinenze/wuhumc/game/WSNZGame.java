@@ -344,7 +344,7 @@ public class WSNZGame extends Game {
     public static final ActionList<ServerActionContext> WSNZ_MAIN = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         context.processors().getFirst().getCurrentGame().gameStart();
         for (var processor : context.processors()) {
-            PlayerUtil.setSpawnPoint(processor.getPlayer(), Wuhumc.config.game_settings_wsnz.game_position_wsnz);
+            PlayerUtil.setOverworldSpawnPoint(processor.getPlayer(), Wuhumc.config.game_settings_wsnz.position);
             PlayerUtil.resetPlayerPosition(processor.getPlayer());
         }
         return false;

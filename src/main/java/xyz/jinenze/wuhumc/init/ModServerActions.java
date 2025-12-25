@@ -8,7 +8,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -134,7 +133,7 @@ public class ModServerActions {
         }
         return true;
     }).wait(65).action((player, handler) -> {
-            PlayerUtil.teleportTo(player, (Vec3) handler.customData().get("position"));
+        PlayerUtil.teleportTo(player, (Vec3) handler.customData().get("position"));
         return true;
     }).build();
 

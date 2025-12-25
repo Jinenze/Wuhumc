@@ -10,7 +10,10 @@ import org.slf4j.LoggerFactory;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.config.ServerConfig;
 import xyz.jinenze.wuhumc.config.ServerConfigWrapper;
-import xyz.jinenze.wuhumc.init.*;
+import xyz.jinenze.wuhumc.init.ModCommands;
+import xyz.jinenze.wuhumc.init.ModGames;
+import xyz.jinenze.wuhumc.init.ModItems;
+import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.network.Payloads;
 import xyz.jinenze.wuhumc.network.ServerNetwork;
 

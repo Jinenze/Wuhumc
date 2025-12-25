@@ -10,11 +10,13 @@ import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
-import xyz.jinenze.wuhumc.config.ServerConfig;
+import xyz.jinenze.wuhumc.game.Game;
+import xyz.jinenze.wuhumc.init.ModGames;
 import xyz.jinenze.wuhumc.init.ModItems;
 
 public class PlayerUtil {
@@ -36,9 +38,6 @@ public class PlayerUtil {
         player.getInventory().setItem(0, new ItemStack(ModItems.READY_ITEM.getItem()));
         player.getInventory().setSelectedSlot(0);
         player.connection.send(new ClientboundSetHeldSlotPacket(0));
-    }
-
-    public static void removeReadyItemFromPlayer(ServerPlayer player) {
     }
 
     public static void removeCurrentContainerItemsFromPlayer(ServerPlayer player) {
@@ -68,14 +67,18 @@ public class PlayerUtil {
         player.teleportTo(pos.x(), pos.y(), pos.z());
     }
 
+    public static boolean isPlayerInGame(ServerPlayer player) {
+        return ProcessorManager.get(player).getCurrentGame() != ModGames.NULL;
+    }
+
 //    public static void ejectPlayer(ServerPlayer player) {
 //        resetPlayerPosition(player);
 //        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection ? 1 : -1, 0.5, 0)));
 //        ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection = !ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection;
 //    }
 
-    public static void setSpawnPoint(ServerPlayer player, ServerConfig.GamePosition config) {
-        player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(Level.OVERWORLD, new BlockPos(config.x, config.y, config.z)), 0, 0), true), false);
+    public static void setOverworldSpawnPoint(ServerPlayer player, BlockPos blockPos) {
+        player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(Level.OVERWORLD, blockPos), 0, 0), true), false);
     }
 
     public static void addScoreAndShowMessage(ServerPlayer player) {
@@ -84,5 +87,16 @@ public class PlayerUtil {
 
     public static void teleportTo(ServerPlayer player, Vec3 pos) {
         player.connection.teleport(new PositionMoveRotation(pos, Vec3.ZERO, 0.0F, 0.0F), Relative.union(Relative.DELTA, Relative.ROTATION));
+    }
+
+    public static void setPlayerCurrentGame(ServerPlayer player, Game game) {
+        if (game.isRunning()) {
+            player.setGameMode(GameType.SPECTATOR);
+            ProcessorManager.get(player).setCurrentGame(game);
+        } else {
+            ProcessorManager.get(player).emitListener(game.getNotReadyListener());
+            ProcessorManager.get(player).setCurrentGame(game);
+            PlayerUtil.placeReadyItemToIndexZero(player);
+        }
     }
 }

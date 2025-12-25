@@ -94,6 +94,14 @@ public class ModCommands {
                 ).then(literal("test").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("scoreboard").then(emitPlayerActions(ModServerActions.test)))
                         .then(literal("clearinventory").then(emitPlayerActions(ModServerActions.test1)))
+                ).then(literal("client")
+                        .then(literal("joinwsnz")
+                                .executes(context -> {
+                                    if (context.getSource().getPlayer() != null && !PlayerUtil.isPlayerInGame(context.getSource().getPlayer())) {
+                                        PlayerUtil.setPlayerCurrentGame(context.getSource().getPlayer(), ModGames.WSNZ);
+                                    }
+                                    return 1;
+                                }))
                 )
         ));
     }

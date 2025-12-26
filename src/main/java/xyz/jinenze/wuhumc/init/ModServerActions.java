@@ -34,6 +34,7 @@ import xyz.jinenze.wuhumc.util.PlayerUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -125,15 +126,16 @@ public class ModServerActions {
         };
     }
 
+    private static final Map<ActionsHandler<ServerPlayer>, Vec3> DATA_POSITION = new WeakHashMap<>();
     public static final ActionList<ServerPlayer> RESPAWN_FLY = ActionList.<ServerPlayer>getBuilder().action((player, handler) -> {
         if (Wuhumc.config.respawn_fly_enabled) {
-            handler.customData().put("position", player.position());
+            DATA_POSITION.put(handler, player.position());
             player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(0, 10, 0)));
             return false;
         }
         return true;
     }).wait(65).action((player, handler) -> {
-        PlayerUtil.teleportTo(player, (Vec3) handler.customData().get("position"));
+        PlayerUtil.teleportTo(player, DATA_POSITION.get(handler));
         return true;
     }).build();
 

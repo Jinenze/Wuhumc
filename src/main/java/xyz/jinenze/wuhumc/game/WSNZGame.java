@@ -141,7 +141,7 @@ public class WSNZGame extends Game {
         return false;
     });
 
-    private static final String DATA_IRON_ARMOR_PIECES_COUNT = "iron_armor_pieces_count";
+    private static final Map<ServerPlayerProcessor, Integer> DATA_IRON_ARMOR_PIECES_COUNT = new WeakHashMap<>();
     private static final WSNZSubGameData CRAFT_FULL_IRON_ARMOR = new WSNZSubGameData(160, 4, WSNZSubGameData.ScoringRuleImpl.TOP_DECREASE, REFRESH_ACTIONS.copy().action((context, handler) -> {
         var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
         context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState(), 0);
@@ -151,7 +151,7 @@ public class WSNZGame extends Game {
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_craft_full_iron_armor")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState()));
-            ProcessorManager.get(player).customData().put(DATA_IRON_ARMOR_PIECES_COUNT, 0);
+            DATA_IRON_ARMOR_PIECES_COUNT.put(ProcessorManager.get(player), 0);
             processor.emitListener(WSNZListeners.PLAYER_CRAFTED_IRON_HELMET);
             processor.emitListener(WSNZListeners.PLAYER_CRAFTED_IRON_CHESTPLATE);
             processor.emitListener(WSNZListeners.PLAYER_CRAFTED_IRON_LEGGING);
@@ -171,15 +171,13 @@ public class WSNZGame extends Game {
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_CHESTPLATE);
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_LEGGING);
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_BOOTS);
-            ProcessorManager.get(player).customData().remove(DATA_IRON_ARMOR_PIECES_COUNT);
         }
         showPlayersScoreBoard(context);
         PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
         return true;
     }).build());
 
-    private static final String DATA_HORSES = "horses";
-    @SuppressWarnings("unchecked")
+    private static final Map<ActionsHandler<ServerActionContext>, List<Horse>> DATA_HORSES = new WeakHashMap<>();
     private static final WSNZSubGameData HORSE_DUEL = new WSNZSubGameData(300, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, REFRESH_ACTIONS.copy().action((context, handler) -> {
         List<Horse> horses = new ArrayList<>();
         for (var processor : context.processors()) {
@@ -197,7 +195,7 @@ public class WSNZGame extends Game {
             processor.emitListener(WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER);
             player.sendSystemMessage(WSNZSubGameData.ScoringRuleImpl.INFINITE.getMessage());
         }
-        handler.customData().put(DATA_HORSES, horses);
+        DATA_HORSES.put(handler, horses);
         return false;
     }).wait(300).action((context, handler) -> {
         for (var processor : context.processors()) {
@@ -206,7 +204,7 @@ public class WSNZGame extends Game {
             PlayerUtil.removeCurrentContainerItemsFromPlayer(processor.getPlayer());
             processor.removeListener(WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER);
         }
-        ((List<Horse>) handler.customData().get(DATA_HORSES)).forEach(Entity::discard);
+        DATA_HORSES.get(handler).forEach(Entity::discard);
         PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
         showPlayersScoreBoard(context);
         return true;
@@ -417,9 +415,9 @@ public class WSNZGame extends Game {
     }
 
     private static void ironArmorCheck(ServerPlayer player) {
-        int count = (int) ProcessorManager.get(player).customData().get(DATA_IRON_ARMOR_PIECES_COUNT);
+        int count = DATA_IRON_ARMOR_PIECES_COUNT.get(ProcessorManager.get(player));
         if (count < 3) {
-            ProcessorManager.get(player).customData().put(DATA_IRON_ARMOR_PIECES_COUNT, count + 1);
+            DATA_IRON_ARMOR_PIECES_COUNT.put(ProcessorManager.get(player), count + 1);
         } else {
             PlayerUtil.addScoreAndShowMessage(player);
         }

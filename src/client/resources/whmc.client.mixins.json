@@ -4,6 +4,7 @@
   "package": "xyz.jinenze.wuhumc.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "GameRendererMixin",
     "KeyMappingInvoker",
     "LocalPlayerMixin",
     "MinecraftMixin",

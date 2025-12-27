@@ -9,7 +9,7 @@ public class Processor<T> {
     private boolean listenerProcessing;
     private final ArrayList<ActionsHandler<T>> handlers = new ArrayList<>();
     private final ArrayList<ActionsHandler<T>> handlersCache = new ArrayList<>();
-    private final ArrayList<ActionProvider<T>> needRemoveActions = new ArrayList<>();
+    private final ArrayList<ActionSupplier<T>> needRemoveActions = new ArrayList<>();
     private final ArrayList<EventListener<T>> listeners = new ArrayList<>();
     private final ArrayList<EventListener<T>> listenersCache = new ArrayList<>();
 
@@ -64,7 +64,7 @@ public class Processor<T> {
         listenerProcessing = false;
     }
 
-    public void emitActions(T input, ActionProvider<T> actions) {
+    public void emitActions(T input, ActionSupplier<T> actions) {
         // Wuhumc.LOGGER.info("Action emit: {}", actions.toString());
         // Wuhumc.LOGGER.info(actionProcessing ? "handlersCache" : "handlers");
         if (actionProcessing) {
@@ -96,11 +96,11 @@ public class Processor<T> {
         listeners.clear();
     }
 
-    public void planToRemoveRunningActions(ActionProvider<T> actions) {
+    public void planToRemoveRunningActions(ActionSupplier<T> actions) {
         needRemoveActions.add(actions);
     }
 
-    public void planToRemoveRunningActions(Supplier<ActionProvider<T>> actions) {
+    public void planToRemoveRunningActions(Supplier<ActionSupplier<T>> actions) {
         planToRemoveRunningActions(actions.get());
     }
 

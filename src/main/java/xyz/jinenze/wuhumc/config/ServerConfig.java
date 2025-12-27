@@ -13,7 +13,9 @@ public class ServerConfig implements ConfigData {
     public WSNZGameSettings game_settings_wsnz = new WSNZGameSettings();
 
     public static class WSNZGameSettings {
-        public int max_games = 5;
+        public int stage_one_max_rounds = 5;
+        public int stage_two_max_rounds = 5;
+        public int stage_three_max_rounds = 5;
         @ConfigEntry.Gui.CollapsibleObject
         public BlockPos position = new BlockPos(0, 0, 0);
     }

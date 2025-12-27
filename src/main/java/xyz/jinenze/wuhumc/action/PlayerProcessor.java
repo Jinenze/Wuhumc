@@ -13,7 +13,7 @@ public class PlayerProcessor<T extends Player> extends Processor<T> {
         super.emitEventToAll(player, event);
     }
 
-    public void emitActions(ActionProvider<T> actions) {
+    public void emitActions(ActionSupplier<T> actions) {
         super.emitActions(player, actions);
     }
 

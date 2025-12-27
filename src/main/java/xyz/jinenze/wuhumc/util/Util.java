@@ -15,12 +15,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
-import xyz.jinenze.wuhumc.game.Game;
+import xyz.jinenze.wuhumc.game.GameSession;
 import xyz.jinenze.wuhumc.init.ModGames;
 import xyz.jinenze.wuhumc.init.ModItems;
 
-public class PlayerUtil {
-    //    public static void removeItemsFromPlayer(ServerPlayer player, List<Item> items) {
+public class Util {
+//        public static void removeItemsFromPlayer(ServerPlayer player, List<Item> items) {
 //        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
 //            var itemStack = player.getInventory().getItem(index);
 //            for (var item : items) {
@@ -30,6 +30,13 @@ public class PlayerUtil {
 //            }
 //        }
 //    }
+
+//        public static void ejectPlayer(ServerPlayer player) {
+//        resetPlayerPosition(player);
+//        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection ? 1 : -1, 0.5, 0)));
+//        ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection = !ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection;
+//    }
+
     public static void placeReadyItemToIndexZero(ServerPlayer player) {
         int index = player.getInventory().getFreeSlot();
         if (!(index == -1)) {
@@ -62,41 +69,34 @@ public class PlayerUtil {
         return item.equals(ModItems.NOT_READY_ITEM.getItem()) || item.equals(ModItems.READY_ITEM.getItem());
     }
 
-    public static void resetPlayerPosition(ServerPlayer player) {
-        var pos = player.getRespawnConfig().respawnData().pos().getBottomCenter();
-        player.teleportTo(pos.x(), pos.y(), pos.z());
-    }
-
     public static boolean isPlayerInGame(ServerPlayer player) {
-        return ProcessorManager.get(player).getCurrentGame() != ModGames.NULL;
+        return ProcessorManager.get(player).getGameSession() != ModGames.NULL;
     }
-
-//    public static void ejectPlayer(ServerPlayer player) {
-//        resetPlayerPosition(player);
-//        player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3(ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection ? 1 : -1, 0.5, 0)));
-//        ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection = !ProcessorManager.get(player).getCurrentGame().gameStartPlayerEjectDirection;
-//    }
 
     public static void setOverworldSpawnPoint(ServerPlayer player, BlockPos blockPos) {
         player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(Level.OVERWORLD, blockPos), 0, 0), true), false);
-    }
-
-    public static void addScoreAndShowMessage(ServerPlayer player) {
-        ProcessorManager.get(player).getCurrentGame().addScore(player);
     }
 
     public static void teleportTo(ServerPlayer player, Vec3 pos) {
         player.connection.teleport(new PositionMoveRotation(pos, Vec3.ZERO, 0.0F, 0.0F), Relative.union(Relative.DELTA, Relative.ROTATION));
     }
 
-    public static void setPlayerCurrentGame(ServerPlayer player, Game game) {
-        if (game.isRunning()) {
+    public static void resetPlayerPosition(ServerPlayer player) {
+        teleportTo(player, player.getRespawnConfig().respawnData().pos().getBottomCenter());
+    }
+
+    public static void addScore(ServerPlayer player) {
+        ProcessorManager.get(player).getGameSession().addScore(player);
+    }
+
+    public static void setPlayerGameSession(ServerPlayer player, GameSession gameSession) {
+        if (gameSession.isRunning()) {
             player.setGameMode(GameType.SPECTATOR);
-            ProcessorManager.get(player).setCurrentGame(game);
+            ProcessorManager.get(player).setCurrentGame(gameSession);
         } else {
-            ProcessorManager.get(player).emitListener(game.getNotReadyListener());
-            ProcessorManager.get(player).setCurrentGame(game);
-            PlayerUtil.placeReadyItemToIndexZero(player);
+            ProcessorManager.get(player).emitListener(gameSession.getGameData().notReadyListener());
+            ProcessorManager.get(player).setCurrentGame(gameSession);
+            Util.placeReadyItemToIndexZero(player);
         }
     }
 }

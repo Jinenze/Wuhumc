@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.jinenze.wuhumc.util.PlayerUtil;
+import xyz.jinenze.wuhumc.util.Util;
 
 @Mixin(Slot.class)
 public abstract class SlotMixin {
@@ -17,14 +17,14 @@ public abstract class SlotMixin {
 
     @Inject(method = "mayPickup", at = @At("HEAD"), cancellable = true)
     private void mayPickupInject(Player playerEntity, CallbackInfoReturnable<Boolean> cir) {
-        if (PlayerUtil.isReadyItems(getItem().getItem())) {
+        if (Util.isReadyItems(getItem().getItem())) {
             cir.setReturnValue(false);
         }
     }
 
     @Inject(method = "mayPlace", at = @At("HEAD"), cancellable = true)
     private void mayPlaceInject(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
-        if (PlayerUtil.isReadyItems(itemStack.getItem())) {
+        if (Util.isReadyItems(itemStack.getItem())) {
             cir.setReturnValue(false);
         }
     }

@@ -11,14 +11,15 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.Wuhumc;
-import xyz.jinenze.wuhumc.action.ActionProvider;
+import xyz.jinenze.wuhumc.action.ActionSupplier;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
 import xyz.jinenze.wuhumc.config.ServerConfigWrapper;
-import xyz.jinenze.wuhumc.game.Game;
+import xyz.jinenze.wuhumc.game.GameSession;
 import xyz.jinenze.wuhumc.network.Payloads;
-import xyz.jinenze.wuhumc.util.PlayerUtil;
+import xyz.jinenze.wuhumc.util.Util;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -58,8 +59,8 @@ public class ModCommands {
                             return 1;
                         })))
                 ).then(literal("game").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                        .then(literal("null").then(setPlayerCurrentGame(ModGames.NULL)))
-                        .then(literal("nswz").then(setPlayerCurrentGame(ModGames.WSNZ)))
+                        .then(literal("null").then(setPlayerGameSession(() -> ModGames.NULL)))
+                        .then(literal("nswz").then(setPlayerGameSession(() -> ModGames.WSNZ)))
                 ).then(literal("config").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("respawnfly")
                                 .then(argument("bool", BoolArgumentType.bool()).executes(context -> {
@@ -97,8 +98,8 @@ public class ModCommands {
                 ).then(literal("client")
                         .then(literal("joinwsnz")
                                 .executes(context -> {
-                                    if (context.getSource().getPlayer() != null && !PlayerUtil.isPlayerInGame(context.getSource().getPlayer())) {
-                                        PlayerUtil.setPlayerCurrentGame(context.getSource().getPlayer(), ModGames.WSNZ);
+                                    if (context.getSource().getPlayer() != null && !Util.isPlayerInGame(context.getSource().getPlayer())) {
+                                        Util.setPlayerGameSession(context.getSource().getPlayer(), ModGames.WSNZ);
                                     }
                                     return 1;
                                 }))
@@ -106,7 +107,7 @@ public class ModCommands {
         ));
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> emitPlayerActions(ActionProvider<ServerPlayer> actions) {
+    private static ArgumentBuilder<CommandSourceStack, ?> emitPlayerActions(ActionSupplier<ServerPlayer> actions) {
         return argument("targets", EntityArgument.players())
                 .executes(context -> {
                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
@@ -119,13 +120,13 @@ public class ModCommands {
                 });
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> setPlayerCurrentGame(Game game) {
+    private static ArgumentBuilder<CommandSourceStack, ?> setPlayerGameSession(Supplier<GameSession> getter) {
         return argument("targets", EntityArgument.players())
                 .executes(context -> {
                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
                     if (!collection.isEmpty()) {
                         for (ServerPlayer player : collection) {
-                            PlayerUtil.setPlayerCurrentGame(player, game);
+                            Util.setPlayerGameSession(player, getter.get());
                         }
                     }
                     return collection.size();

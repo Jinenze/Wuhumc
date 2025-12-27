@@ -5,14 +5,14 @@ import java.util.Iterator;
 
 public class ActionsHandler<T> {
     private final T input;
-    private final ActionProvider<T> actions;
+    private final ActionSupplier<T> actions;
     private final Iterator<Action<T>> iterator;
     private int delay;
 
-    public ActionsHandler(T input, ActionProvider<T> actions) {
+    public ActionsHandler(T input, ActionSupplier<T> actions) {
         this.input = input;
         this.actions = actions;
-        this.iterator = actions.iterator();
+        this.iterator = actions.get();
     }
 
     public boolean tick() {
@@ -23,7 +23,7 @@ public class ActionsHandler<T> {
         return iterator.next().run(input, this) || tick();
     }
 
-    public ActionProvider<T> getActions() {
+    public ActionSupplier<T> getActions() {
         return actions;
     }
 

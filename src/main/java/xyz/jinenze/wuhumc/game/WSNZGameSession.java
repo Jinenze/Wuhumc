@@ -22,9 +22,9 @@ import net.minecraft.world.level.block.Blocks;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.action.EventListener;
-import xyz.jinenze.wuhumc.action.impl.WSNZSubGameData;
 import xyz.jinenze.wuhumc.init.ModEvents;
-import xyz.jinenze.wuhumc.util.PlayerUtil;
+import xyz.jinenze.wuhumc.init.ModGames;
+import xyz.jinenze.wuhumc.util.Util;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 
 import static xyz.jinenze.wuhumc.init.ModServerActions.*;
 
-public class WSNZGame extends Game {
+public class WSNZGameSession extends GameSession implements HasNextIterator<Action<ServerActionContext>> {
     static {
         var itemStack = new ItemStack(Items.DIAMOND);
         itemStack.applyComponents(DataComponentMap.builder().set(DataComponents.CUSTOM_NAME, Component.literal("friendship")).build());
@@ -41,40 +41,50 @@ public class WSNZGame extends Game {
     }
 
     private static final ItemStack DIAMOND;
-    private Iterator<ArrayList<WSNZSubGameData>> currentStages;
-    private Iterator<WSNZSubGameData> currentSubGames;
-    private WSNZSubGameData currentSubGame;
-    private ScoreProcessor currrentScoreProcessor;
-    private int remainGames;
 
-    public WSNZGame() {
-        super(ModEvents.PLAYER_WSNZ_READY, WSNZ_MAIN, WSNZListeners.PLAYER_WSNZ_READY);
+    private final Queue<ActionsHandler<ServerActionContext>> handlers;
+    private final Iterator<ArrayList<WSNZSubGameData>> stagesIterator;
+    private final Iterator<Supplier<Integer>> stageMaxRoundsIterator;
+    private Iterator<WSNZSubGameData> subGamesIterator;
+    private WSNZSubGameData currentSubGame;
+    private int remainRounds;
+    private ScoreProcessor currrentScoreProcessor;
+    private final Action<ServerActionContext> action;
+
+    public WSNZGameSession() {
+        stages.forEach(Collections::shuffle);
+        stagesIterator = stages.iterator();
+        stageMaxRoundsIterator = stageMaxRounds.iterator();
+        subGamesIterator = stagesIterator.next().iterator();
+        remainRounds = stageMaxRoundsIterator.next().get();
+        handlers = new LinkedList<>();
+        action = (context, handler) -> {
+            if (handlers.isEmpty()) {
+                if (subGamesIterator.hasNext() && remainRounds > 0) {
+                    currentSubGame = subGamesIterator.next();
+                    handlers.add(new ActionsHandler<>(context, currentSubGame.actions()));
+                    currrentScoreProcessor = new ScoreProcessor(currentSubGame, context);
+                    --remainRounds;
+                } else if (stagesIterator.hasNext()) {
+                    subGamesIterator = stagesIterator.next().iterator();
+                    remainRounds = stageMaxRoundsIterator.next().get();
+                    return next().run(context, handler);
+                } else {
+                    ProcessorManager.getServerProcessor().emitActions(context, GAME_END);
+                    return true;
+                }
+            }
+            if (handlers.element().tick()) {
+                handlers.remove();
+            }
+            handler.setDelay(1);
+            return false;
+        };
     }
 
     @Override
-    public void gameStart() {
-        super.gameStart();
-        remainGames = Wuhumc.config.game_settings_wsnz.max_games;
-        currentStages = stages.iterator();
-        stages.forEach(Collections::shuffle);
-        currentSubGames = currentStages.next().iterator();
-    }
-
-    public WSNZSubGameData next(ServerActionContext context) {
-        if (currentSubGames.hasNext() && remainGames > 0) {
-            currentSubGame = currentSubGames.next();
-        } else {
-            currentSubGames = currentStages.next().iterator();
-            currentSubGame = currentSubGames.next();
-            remainGames = Wuhumc.config.game_settings_wsnz.max_games;
-        }
-        --remainGames;
-        currrentScoreProcessor = new ScoreProcessor(currentSubGame, context);
-        return currentSubGame;
-    }
-
-    public boolean hasNext() {
-        return (currentSubGames.hasNext() && remainGames > 0) || currentStages.hasNext();
+    public Action<ServerActionContext> next() {
+        return action;
     }
 
     @Override
@@ -91,10 +101,22 @@ public class WSNZGame extends Game {
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_minus_score")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.SHIELD_BLOCK, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
-        ProcessorManager.get(player).addCurrentScore(score);
+        ProcessorManager.get(player).addScore(score);
     }
 
-    public WSNZSubGameData getCurrentSubGame() {
+    @Override
+    public void gameEnd() {
+        super.gameEnd();
+        ModGames.WSNZ = new WSNZGameSession();
+    }
+
+    @Override
+    public GameData getGameData() {
+        return GAME_DATA;
+    }
+
+    //todo: wtf
+    private WSNZSubGameData getCurrentSubGame() {
         return currentSubGame;
     }
 
@@ -121,23 +143,23 @@ public class WSNZGame extends Game {
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
-    }).wait(10).action((context, handler) -> {
+    }).wait(5).action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_2")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
-    }).wait(10).action((context, handler) -> {
+    }).wait(5).action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_3")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
-    }).wait(30).action((context, handler) -> {
-        var game = ((WSNZGame) context.processors().getFirst().getCurrentGame()).getCurrentSubGame();
-        ProcessorManager.getServerProcessor().emitActions(context, displayCountdown(game.totalTime()));
+    }).wait(20).action((context, handler) -> {
+        //todo: we need refactor
+        ProcessorManager.getServerProcessor().emitActions(context, displayCountdown(((WSNZGameSession) context.processors().getFirst().getGameSession()).getCurrentSubGame().totalTime()));
         return false;
     });
 
@@ -166,14 +188,14 @@ public class WSNZGame extends Game {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.AIR.defaultBlockState()));
-            PlayerUtil.removeCurrentContainerItemsFromPlayer(player);
+            Util.removeCurrentContainerItemsFromPlayer(player);
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_HELMET);
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_CHESTPLATE);
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_LEGGING);
             processor.removeListener(WSNZListeners.PLAYER_CRAFTED_IRON_BOOTS);
         }
         showPlayersScoreBoard(context);
-        PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
+        Util.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
         return true;
     }).build());
 
@@ -201,11 +223,11 @@ public class WSNZGame extends Game {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-            PlayerUtil.removeCurrentContainerItemsFromPlayer(processor.getPlayer());
+            Util.removeCurrentContainerItemsFromPlayer(processor.getPlayer());
             processor.removeListener(WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER);
         }
         DATA_HORSES.get(handler).forEach(Entity::discard);
-        PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
+        Util.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
         showPlayersScoreBoard(context);
         return true;
     }).build());
@@ -214,6 +236,7 @@ public class WSNZGame extends Game {
     private static final ArrayList<WSNZSubGameData> stageTwoSubGames = getSubGames(StageTwoSubGameImpl.values());
     private static final ArrayList<WSNZSubGameData> stageThreeSubGames = getSubGames(StageThreeSubGameImpl.values());
     private static final List<ArrayList<WSNZSubGameData>> stages = List.of(stageOneSubGames, stageTwoSubGames, stageThreeSubGames);
+    private static final List<Supplier<Integer>> stageMaxRounds = List.of(() -> Wuhumc.config.game_settings_wsnz.stage_one_max_rounds, () -> Wuhumc.config.game_settings_wsnz.stage_two_max_rounds, () -> Wuhumc.config.game_settings_wsnz.stage_three_max_rounds);
 
     private static WSNZSubGameData needMonitorSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, Function<ServerPlayer, Boolean> monitor) {
         return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
@@ -259,11 +282,11 @@ public class WSNZGame extends Game {
                 var player = processor.getPlayer();
                 player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
                 player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.AIR.defaultBlockState()));
-                PlayerUtil.removeCurrentContainerItemsFromPlayer(player);
+                Util.removeCurrentContainerItemsFromPlayer(player);
                 processor.removeListener(listener);
             }
             showPlayersScoreBoard(context);
-            PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
+            Util.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
             return true;
         }).build());
     }
@@ -285,10 +308,10 @@ public class WSNZGame extends Game {
             for (var processor : context.processors()) {
                 var player = processor.getPlayer();
                 player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
-                PlayerUtil.removeCurrentContainerItemsFromPlayer(processor.getPlayer());
+                Util.removeCurrentContainerItemsFromPlayer(processor.getPlayer());
                 processor.removeListener(listener);
             }
-            PlayerUtil.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
+            Util.removeItemsFromGround(context.processors().getFirst().getPlayer().level());
             showPlayersScoreBoard(context);
             return true;
         }).build());
@@ -315,35 +338,13 @@ public class WSNZGame extends Game {
         }).build());
     }
 
-    public static final ActionProvider<ServerActionContext> WSNZ_LOOP = () -> new HasNextIterator<>() {
-        private final Queue<ActionsHandler<ServerActionContext>> handlers = new LinkedList<>();
-
-        @Override
-        public Action<ServerActionContext> next() {
-            return (context, handler) -> {
-                if (handlers.isEmpty()) {
-                    var game = (WSNZGame) context.processors().getFirst().getCurrentGame();
-                    if (game.hasNext()) {
-                        handlers.add(new ActionsHandler<>(context, game.next(context).actions()));
-                    } else {
-                        ProcessorManager.getServerProcessor().emitActions(context, GAME_END);
-                        return true;
-                    }
-                }
-                if (handlers.element().tick()) {
-                    handlers.remove();
-                }
-                handler.setDelay(1);
-                return false;
-            };
-        }
-    };
+    private static final ActionSupplier<ServerActionContext> WSNZ_LOOP = () -> ModGames.WSNZ;
 
     public static final ActionList<ServerActionContext> WSNZ_MAIN = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
-        context.processors().getFirst().getCurrentGame().gameStart();
+        context.processors().getFirst().getGameSession().gameStart();
         for (var processor : context.processors()) {
-            PlayerUtil.setOverworldSpawnPoint(processor.getPlayer(), Wuhumc.config.game_settings_wsnz.position);
-            PlayerUtil.resetPlayerPosition(processor.getPlayer());
+            Util.setOverworldSpawnPoint(processor.getPlayer(), Wuhumc.config.game_settings_wsnz.position);
+            Util.resetPlayerPosition(processor.getPlayer());
         }
         return false;
     }).wait(20).action(((context, handler) -> {
@@ -360,9 +361,8 @@ public class WSNZGame extends Game {
         BELOW(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_below"), player -> player.getXRot() > 80f)),
         NOT_ABOVE(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_above"), player -> player.getXRot() < -80f)),
         ABOVE(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_above"), player -> player.getXRot() < -80f)),
-        DIAMOND_GIFT(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_diamond_gift"), WSNZListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, List.of(DIAMOND::copy))),
+        NOT_SNEAK(basicSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_sneak"), WSNZListeners.PLAYER_SNEAK)),
         SNEAK(basicSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_sneak"), WSNZListeners.PLAYER_SNEAK)),
-        FALL_VOID(basicSubGame(60, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_fall_void"), WSNZListeners.PLAYER_FALL_VOID)),
         ;
         private final WSNZSubGameData game;
 
@@ -377,8 +377,10 @@ public class WSNZGame extends Game {
     }
 
     private enum StageTwoSubGameImpl implements SubGameImpl {
+        FALL_VOID(basicSubGame(60, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_fall_void"), WSNZListeners.PLAYER_FALL_VOID)),
+        DIAMOND_GIFT(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_diamond_gift"), WSNZListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, List.of(DIAMOND::copy))),
         PLAYER_DUEL(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_player_duel"), WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER, List.of(() -> new ItemStack(Items.NETHERITE_SPEAR)))),
-        CRAFT_FULL_IRON_ARMOR(WSNZGame.CRAFT_FULL_IRON_ARMOR),
+        CRAFT_FULL_IRON_ARMOR(WSNZGameSession.CRAFT_FULL_IRON_ARMOR),
         CRAFT_DIAMOND_AXE(craftItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_craft_axe"), WSNZListeners.PLAYER_CRAFTED_DIAMOND_AXE, List.of(() -> new ItemStack(Items.DIAMOND, 3), () -> new ItemStack(Items.STICK, 2)))),
         ;
         private final WSNZSubGameData game;
@@ -394,7 +396,7 @@ public class WSNZGame extends Game {
     }
 
     private enum StageThreeSubGameImpl implements SubGameImpl {
-        HORSE_DUEL(WSNZGame.HORSE_DUEL),
+        HORSE_DUEL(WSNZGameSession.HORSE_DUEL),
         ;
         private final WSNZSubGameData game;
 
@@ -419,7 +421,7 @@ public class WSNZGame extends Game {
         if (count < 3) {
             DATA_IRON_ARMOR_PIECES_COUNT.put(ProcessorManager.get(player), count + 1);
         } else {
-            PlayerUtil.addScoreAndShowMessage(player);
+            Util.addScore(player);
         }
     }
 
@@ -430,15 +432,15 @@ public class WSNZGame extends Game {
                 return PLAYER_WSNZ_READY;
             }
         })),
-        PLAYER_FALL_VOID(ModEvents.PLAYER_FALL_VOID, PlayerUtil::addScoreAndShowMessage),
-        PLAYER_SNEAK(ModEvents.PLAYER_SNEAK, PlayerUtil::addScoreAndShowMessage),
-        PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND(ModEvents.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, PlayerUtil::addScoreAndShowMessage),
-        PLAYER_CRAFTED_DIAMOND_AXE(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("diamond_axe"))), PlayerUtil::addScoreAndShowMessage),
-        PLAYER_CRAFTED_IRON_HELMET(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_helmet"))), WSNZGame::ironArmorCheck),
-        PLAYER_CRAFTED_IRON_CHESTPLATE(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_chestplate"))), WSNZGame::ironArmorCheck),
-        PLAYER_CRAFTED_IRON_LEGGING(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_leggings"))), WSNZGame::ironArmorCheck),
-        PLAYER_CRAFTED_IRON_BOOTS(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_boots"))), WSNZGame::ironArmorCheck),
-        PLAYER_KILLED_ANOTHER_PLAYER(ModEvents.PLAYER_KILLED_ANOTHER_PLAYER, PlayerUtil::addScoreAndShowMessage),
+        PLAYER_FALL_VOID(ModEvents.PLAYER_FALL_VOID, Util::addScore),
+        PLAYER_SNEAK(ModEvents.PLAYER_SNEAK, Util::addScore),
+        PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND(ModEvents.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, Util::addScore),
+        PLAYER_CRAFTED_DIAMOND_AXE(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("diamond_axe"))), Util::addScore),
+        PLAYER_CRAFTED_IRON_HELMET(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_helmet"))), WSNZGameSession::ironArmorCheck),
+        PLAYER_CRAFTED_IRON_CHESTPLATE(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_chestplate"))), WSNZGameSession::ironArmorCheck),
+        PLAYER_CRAFTED_IRON_LEGGING(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_leggings"))), WSNZGameSession::ironArmorCheck),
+        PLAYER_CRAFTED_IRON_BOOTS(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("iron_boots"))), WSNZGameSession::ironArmorCheck),
+        PLAYER_KILLED_ANOTHER_PLAYER(ModEvents.PLAYER_KILLED_ANOTHER_PLAYER, Util::addScore),
         ;
 
         private final Event event;
@@ -459,4 +461,45 @@ public class WSNZGame extends Game {
             return action;
         }
     }
+
+    private record WSNZSubGameData(int totalTime, int scoreFactor, ScoringRule scoringRule,
+                                   ActionSupplier<ServerActionContext> actions) {
+        public interface ScoringRule extends ScoreGetter {
+            Component getMessage();
+        }
+
+        public interface ScoreGetter {
+            int getScore(int scorerCount, int scoreFactor, ServerActionContext context);
+        }
+
+        private enum ScoringRuleImpl implements ScoringRule {
+            NONE((scorerCount, scoreFactor, context) -> 0, Component.literal("")),
+            INFINITE((scorerCount, scoreFactor, context) -> scoreFactor, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_infinite")),
+            TOP_ONE((scorerCount, scoreFactor, context) -> scorerCount == 1 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_one")),
+            TOP_HALF((scorerCount, scoreFactor, context) -> scorerCount > context.processors().size() / 2 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_half")),
+            TOP_THREE((scorerCount, scoreFactor, context) -> scorerCount > 3 ? 0 : scoreFactor, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_three")),
+            TOP_DECREASE((scorerCount, scoreFactor, context) -> Math.max(scoreFactor - scorerCount, 0), Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_decrease")),
+            ;
+
+            private final ScoreGetter scoreGetter;
+            private final Component message;
+
+            ScoringRuleImpl(ScoreGetter scoreGetter, Component message) {
+                this.scoreGetter = scoreGetter;
+                this.message = message;
+            }
+
+            @Override
+            public int getScore(int scorerCount, int scoreFactor, ServerActionContext context) {
+                return scoreGetter.getScore(scorerCount, scoreFactor, context);
+            }
+
+            @Override
+            public Component getMessage() {
+                return message;
+            }
+        }
+    }
+
+    public static final GameData GAME_DATA = new GameData(ModEvents.PLAYER_WSNZ_READY, WSNZ_MAIN, WSNZListeners.PLAYER_WSNZ_READY);
 }

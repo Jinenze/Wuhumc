@@ -28,19 +28,19 @@ public class ReadyItem extends Item {
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand interactionHand) {
         if (player instanceof ServerPlayer serverPlayer) {
             var processor = ProcessorManager.get(serverPlayer);
-            var currentGame = processor.getCurrentGame();
-            processor.removeListener(currentGame.getNotReadyListener());
+            var gameData = processor.getGameSession().getGameData();
+            processor.removeListener(gameData.notReadyListener());
             var inventory = serverPlayer.getInventory();
             inventory.removeItemNoUpdate(inventory.getSelectedSlot());
             inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.NOT_READY_ITEM.getItem()));
             for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
-                if (ProcessorManager.get(anotherPlayer).emitEventToFirstMatch(currentGame.getOnReadyEvent())) {
+                if (ProcessorManager.get(anotherPlayer).emitEventToFirstMatch(gameData.onReadyEvent())) {
                     return InteractionResult.PASS;
                 }
             }
             List<ServerPlayerProcessor> processors = new ArrayList<>();
             for (ServerPlayer anotherPlayer : serverPlayer.level().getServer().getPlayerList().getPlayers()) {
-                if (ProcessorManager.get(anotherPlayer).getCurrentGame().equals(ProcessorManager.get(serverPlayer).getCurrentGame())) {
+                if (ProcessorManager.get(anotherPlayer).getGameSession().equals(ProcessorManager.get(serverPlayer).getGameSession())) {
                     processors.add(ProcessorManager.get(anotherPlayer));
                 }
             }

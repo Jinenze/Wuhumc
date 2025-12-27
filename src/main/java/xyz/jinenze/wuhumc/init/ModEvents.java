@@ -1,6 +1,7 @@
 package xyz.jinenze.wuhumc.init;
 
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
 import xyz.jinenze.wuhumc.action.Event;
 
 public enum ModEvents implements Event {
@@ -15,7 +16,14 @@ public enum ModEvents implements Event {
     public record CraftEvent(ResourceKey<?> id) implements Event {
         @Override
         public boolean equals(Object event) {
-            return event instanceof CraftEvent(ResourceKey<?> id1) && id1.equals(id);
+            return event instanceof CraftEvent(ResourceKey<?> id1) && id.equals(id1);
+        }
+    }
+
+    public record EatEvent(Item item) implements Event {
+        @Override
+        public boolean equals(Object event) {
+            return event instanceof EatEvent(Item item1) && item.equals(item1);
         }
     }
 }

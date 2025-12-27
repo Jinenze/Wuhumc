@@ -1,6 +1,7 @@
 package xyz.jinenze.wuhumc.mixin;
 
 import com.mojang.authlib.GameProfile;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -76,6 +77,15 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerMi
         super.setShiftKeyDown(bl);
         if (bl) {
             processor.emitEventToAll(ModEvents.PLAYER_SNEAK);
+        }
+    }
+
+    @Inject(method = "completeUsingItem", at = @At("HEAD"))
+    private void completeUsingItemInject(CallbackInfo ci) {
+        if (!this.useItem.isEmpty() && this.isUsingItem()) {
+            if (this.useItem.get(DataComponents.FOOD) != null) {
+                processor.emitEventToAll(new ModEvents.EatEvent(this.useItem.getItem()));
+            }
         }
     }
 

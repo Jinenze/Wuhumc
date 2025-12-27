@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public record ActionList<T>(List<Action<T>> actions) implements ActionProvider<T> {
-
-    public Iterator<Action<T>> iterator() {
+public record ActionList<T>(List<Action<T>> actions) implements ActionSupplier<T> {
+    @Override
+    public Iterator<Action<T>> get() {
         return actions.iterator();
     }
 

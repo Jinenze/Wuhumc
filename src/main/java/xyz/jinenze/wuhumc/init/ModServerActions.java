@@ -29,7 +29,7 @@ import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.network.Payloads;
 import xyz.jinenze.wuhumc.util.InventorySnapshot;
-import xyz.jinenze.wuhumc.util.PlayerUtil;
+import xyz.jinenze.wuhumc.util.Util;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,14 +64,14 @@ public class ModServerActions {
 
     public static final ActionList<ServerPlayer> clearReadyItem = ActionList.<ServerPlayer>getBuilder().wait(60).action((player, handler) -> {
         for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
-            if (PlayerUtil.isReadyItems(player.getInventory().getItem(index).getItem())) {
+            if (Util.isReadyItems(player.getInventory().getItem(index).getItem())) {
                 player.getInventory().removeItemNoUpdate(index);
             }
         }
         return true;
     }).build();
 
-    public static final ActionProvider<ServerPlayer> dumbActions = () -> (HasNextIterator<Action<ServerPlayer>>) () -> (player, handler) -> {
+    public static final ActionSupplier<ServerPlayer> dumbActions = () -> (HasNextIterator<Action<ServerPlayer>>) () -> (player, handler) -> {
         player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 1f, 0.5f);
         player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
         handler.setDelay(1);
@@ -87,7 +87,7 @@ public class ModServerActions {
         context.processors().forEach(processor -> ServerPlayNetworking.send(processor.getPlayer(), new Payloads.ShowScoreBoardS2CPayload(map)));
     }
 
-    public static ActionProvider<ServerActionContext> displayCountdown(int delay) {
+    public static ActionSupplier<ServerActionContext> displayCountdown(int delay) {
         return () -> new HasNextIterator<>() {
             private int count = delay;
             private final Action<ServerActionContext> action = (context, handler) -> {
@@ -106,12 +106,12 @@ public class ModServerActions {
         };
     }
 
-    public static ActionProvider<ServerPlayer> newPlayerMonitor(int delay, Function<ServerPlayer, Boolean> monitor) {
+    public static ActionSupplier<ServerPlayer> newPlayerMonitor(int delay, Function<ServerPlayer, Boolean> monitor) {
         return () -> new HasNextIterator<>() {
             private int lifeTime = delay;
             private final Action<ServerPlayer> action = (player, handler) -> {
                 if (monitor.apply(player)) {
-                    PlayerUtil.addScoreAndShowMessage(player);
+                    Util.addScore(player);
                     return true;
                 }
                 --lifeTime;
@@ -135,7 +135,7 @@ public class ModServerActions {
         }
         return true;
     }).wait(65).action((player, handler) -> {
-        PlayerUtil.teleportTo(player, DATA_POSITION.get(handler));
+        Util.teleportTo(player, DATA_POSITION.get(handler));
         return true;
     }).build();
 
@@ -164,14 +164,14 @@ public class ModServerActions {
             maxProcessor.getPlayer().getInventory().setItem(EquipmentSlot.HEAD.getIndex(36), itemStack);
         }
 
-        maxProcessor.getCurrentGame().gameEnd();
+        maxProcessor.getGameSession().gameEnd();
 
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            if (ProcessorManager.get(player).getCurrentGame().equals(maxProcessor.getCurrentGame())) {
+            if (ProcessorManager.get(player).getGameSession().equals(maxProcessor.getGameSession())) {
                 ProcessorManager.get(player).setCurrentGame(ModGames.NULL);
                 player.setRespawnPosition(null, false);
                 player.setGameMode(GameType.ADVENTURE);
-                PlayerUtil.teleportTo(player, level.getRespawnData().pos().getBottomCenter());
+                Util.teleportTo(player, level.getRespawnData().pos().getBottomCenter());
             }
         }
 
@@ -198,7 +198,7 @@ public class ModServerActions {
 
     private static boolean countdown(ServerActionContext context, String key) {
         for (var processor : context.processors()) {
-            if (processor.emitEventToFirstMatch(processor.getCurrentGame().getOnReadyEvent())) {
+            if (processor.emitEventToFirstMatch(processor.getGameSession().getGameData().onReadyEvent())) {
                 for (var anotherProcessor : context.processors()) {
                     anotherProcessor.getPlayer().connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_cancel")));
                 }
@@ -231,16 +231,16 @@ public class ModServerActions {
                 context.processors().forEach(processor -> processor.getPlayer().getInventory().removeItemNoUpdate(0));
                 ProcessorManager.getServerProcessor().planToRemoveRunningActions(new Supplier<>() {
                     @Override
-                    public ActionProvider<ServerActionContext> get() {
+                    public ActionSupplier<ServerActionContext> get() {
                         return GAME_COUNTDOWN;
                     }
                 });
                 context.processors().forEach(processor -> {
                     processor.getInventoryCacheStack().push(new InventorySnapshot(processor.getPlayer()));
-                    PlayerUtil.removeInventoryItemsFromPlayer(processor.getPlayer());
+                    Util.removeInventoryItemsFromPlayer(processor.getPlayer());
                 });
-                context.processors().getFirst().getCurrentGame().gameStart();
-                ProcessorManager.getServerProcessor().emitActions(context, context.processors().getFirst().getCurrentGame().getGameStartAction());
+                context.processors().getFirst().getGameSession().gameStart();
+                ProcessorManager.getServerProcessor().emitActions(context, context.processors().getFirst().getGameSession().getGameData().gameStartAction());
                 return true;
             }
     ).build();

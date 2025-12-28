@@ -1,5 +1,6 @@
 package xyz.jinenze.wuhumc.item;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -26,7 +27,7 @@ public class NotReadyItem extends Item {
             var inventory = serverPlayer.getInventory();
             inventory.removeItemNoUpdate(inventory.getSelectedSlot());
             inventory.add(inventory.getSelectedSlot(), new ItemStack(ModItems.READY_ITEM.getItem()));
-//            serverPlayer.sendSystemMessage(Component.translatable("message.wuhumc.cancel_ready"), true);
+            serverPlayer.sendSystemMessage(Component.translatable("message.wuhumc.cancel_ready"), true);
         }
         return InteractionResult.PASS;
     }

@@ -28,7 +28,7 @@ public abstract class BasePressurePlateBlockMixin {
             if (entity instanceof ServerPlayer player) {
                 if (player.getRespawnConfig() == null) {
                     player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(level.dimension(), blockPos.above(1)), 0, 0), true), false);
-                    player.sendSystemMessage(Component.translatable("title.wuhumc.spawn_point"), true);
+                    player.sendSystemMessage(Component.translatable("message.wuhumc.spawn_point"), true);
                     player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_PLING, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
                     ci.cancel();
                 }
@@ -37,7 +37,7 @@ public abstract class BasePressurePlateBlockMixin {
                     ci.cancel();
                 }
                 player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(level.dimension(), blockPos.above(1)), 0, 0), true), false);
-                player.sendSystemMessage(Component.translatable("title.wuhumc.spawn_point"), true);
+                player.sendSystemMessage(Component.translatable("message.wuhumc.spawn_point"), true);
                 player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_PLING, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
                 Wuhumc.LOGGER.info(oldPos.toShortString());
                 Wuhumc.LOGGER.info(blockPos.toShortString());

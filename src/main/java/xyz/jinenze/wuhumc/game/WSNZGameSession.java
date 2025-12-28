@@ -45,6 +45,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     private final Queue<ActionsHandler<ServerActionContext>> handlers;
     private final Iterator<ArrayList<WSNZSubGameData>> stagesIterator;
     private final Iterator<Supplier<Integer>> stageMaxRoundsIterator;
+    private final Iterator<ActionSupplier<ServerActionContext>> stageCustomActionIterator;
     private Iterator<WSNZSubGameData> subGamesIterator;
     private WSNZSubGameData currentSubGame;
     private int remainRounds;
@@ -55,19 +56,31 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
         stages.forEach(Collections::shuffle);
         stagesIterator = stages.iterator();
         stageMaxRoundsIterator = stageMaxRounds.iterator();
-        subGamesIterator = stagesIterator.next().iterator();
-        remainRounds = stageMaxRoundsIterator.next().get();
+        stageCustomActionIterator = stageCustomAction.iterator();
+        subGamesIterator = new Iterator<>(){
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public WSNZSubGameData next() {
+                return null;
+            }
+        };
         handlers = new LinkedList<>();
         action = (context, handler) -> {
             if (handlers.isEmpty()) {
                 if (subGamesIterator.hasNext() && remainRounds > 0) {
                     currentSubGame = subGamesIterator.next();
+                    handlers.add(new ActionsHandler<>(context, REFRESH_ACTIONS));
                     handlers.add(new ActionsHandler<>(context, currentSubGame.actions()));
                     currrentScoreProcessor = new ScoreProcessor(currentSubGame, context);
                     --remainRounds;
                 } else if (stagesIterator.hasNext()) {
                     subGamesIterator = stagesIterator.next().iterator();
                     remainRounds = stageMaxRoundsIterator.next().get();
+                    handlers.add(new ActionsHandler<>(context, stageCustomActionIterator.next()));
                     return next().run(context, handler);
                 } else {
                     ProcessorManager.getServerProcessor().emitActions(context, GAME_END);
@@ -115,11 +128,6 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
         return GAME_DATA;
     }
 
-    //todo: wtf
-    private WSNZSubGameData getCurrentSubGame() {
-        return currentSubGame;
-    }
-
     private static class ScoreProcessor {
         private int sorerCount;
         private final ServerActionContext context;
@@ -136,7 +144,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
         }
     }
 
-    private static final ActionList.Builder<ServerActionContext> REFRESH_ACTIONS = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
+    private static final ActionList<ServerActionContext> REFRESH_ACTIONS = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_1")));
@@ -159,12 +167,12 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
         return false;
     }).wait(20).action((context, handler) -> {
         //todo: we need refactor
-        ProcessorManager.getServerProcessor().emitActions(context, displayCountdown(((WSNZGameSession) context.processors().getFirst().getGameSession()).getCurrentSubGame().totalTime()));
-        return false;
-    });
+        ProcessorManager.getServerProcessor().emitActions(context, displayCountdown(((WSNZGameSession) context.processors().getFirst().getGameSession()).currentSubGame.totalTime()));
+        return true;
+    }).build();
 
     private static final Map<ServerPlayerProcessor, Integer> DATA_IRON_ARMOR_PIECES_COUNT = new WeakHashMap<>();
-    private static final WSNZSubGameData CRAFT_FULL_IRON_ARMOR = new WSNZSubGameData(160, 4, WSNZSubGameData.ScoringRuleImpl.TOP_DECREASE, REFRESH_ACTIONS.copy().action((context, handler) -> {
+    private static final WSNZSubGameData CRAFT_FULL_IRON_ARMOR = new WSNZSubGameData(160, 4, WSNZSubGameData.ScoringRuleImpl.TOP_DECREASE, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
         context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState(), 0);
         for (var processor : context.processors()) {
@@ -200,7 +208,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     }).build());
 
     private static final Map<ActionsHandler<ServerActionContext>, List<Horse>> DATA_HORSES = new WeakHashMap<>();
-    private static final WSNZSubGameData HORSE_DUEL = new WSNZSubGameData(300, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, REFRESH_ACTIONS.copy().action((context, handler) -> {
+    private static final WSNZSubGameData HORSE_DUEL = new WSNZSubGameData(300, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         List<Horse> horses = new ArrayList<>();
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
@@ -237,9 +245,17 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     private static final ArrayList<WSNZSubGameData> stageThreeSubGames = getSubGames(StageThreeSubGameImpl.values());
     private static final List<ArrayList<WSNZSubGameData>> stages = List.of(stageOneSubGames, stageTwoSubGames, stageThreeSubGames);
     private static final List<Supplier<Integer>> stageMaxRounds = List.of(() -> Wuhumc.config.game_settings_wsnz.stage_one_max_rounds, () -> Wuhumc.config.game_settings_wsnz.stage_two_max_rounds, () -> Wuhumc.config.game_settings_wsnz.stage_three_max_rounds);
+    private static final List<ActionSupplier<ServerActionContext>> stageCustomAction = List.of(basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz_stage_one")), basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz_stage_two")), basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz_stage_three")));
+
+    private static ActionSupplier<ServerActionContext> basicStageCustomAction(Component text) {
+        return ActionList.<ServerActionContext>getBuilder().action((input, handler) -> {
+            input.processors().forEach(processor -> processor.getPlayer().connection.send(new ClientboundSetTitleTextPacket(text)));
+            return false;
+        }).wait(10).action((input, handler) -> true).build();
+    }
 
     private static WSNZSubGameData needMonitorSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, Function<ServerPlayer, Boolean> monitor) {
-        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+        return new WSNZSubGameData(totalTime, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
             var action = newPlayerMonitor(totalTime, monitor);
             for (var processor : context.processors()) {
                 processor.emitActions(action);
@@ -260,7 +276,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     }
 
     private static WSNZSubGameData craftItemSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
-        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+        return new WSNZSubGameData(totalTime, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
             var blockPos = context.processors().getFirst().getPlayer().getRespawnConfig().respawnData().pos().above(3);
             context.processors().getFirst().getPlayer().level().setBlock(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState(), 0);
             for (var processor : context.processors()) {
@@ -292,7 +308,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     }
 
     private static WSNZSubGameData needItemSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener, List<Supplier<ItemStack>> requireItemStacks) {
-        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+        return new WSNZSubGameData(totalTime, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
             for (var processor : context.processors()) {
                 var player = processor.getPlayer();
                 for (var supplier : requireItemStacks) {
@@ -318,7 +334,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     }
 
     private static WSNZSubGameData basicSubGame(int totalTime, int score, WSNZSubGameData.ScoringRule scoringRule, Component text, EventListener<ServerPlayer> listener) {
-        return new WSNZSubGameData(totalTime, score, scoringRule, REFRESH_ACTIONS.copy().action((context, handler) -> {
+        return new WSNZSubGameData(totalTime, score, scoringRule, ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
             for (var processor : context.processors()) {
                 var player = processor.getPlayer();
                 player.connection.send(new ClientboundSetTitleTextPacket(text));
@@ -338,8 +354,6 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
         }).build());
     }
 
-    private static final ActionSupplier<ServerActionContext> WSNZ_LOOP = () -> ModGames.WSNZ;
-
     public static final ActionList<ServerActionContext> WSNZ_MAIN = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         context.processors().getFirst().getGameSession().gameStart();
         for (var processor : context.processors()) {
@@ -348,7 +362,7 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
         }
         return false;
     }).wait(20).action(((context, handler) -> {
-        ProcessorManager.getServerProcessor().emitActions(context, WSNZ_LOOP);
+        ProcessorManager.getServerProcessor().emitActions(context, () -> (WSNZGameSession) context.processors().getFirst().getGameSession());
         return true;
     })).build();
 
@@ -357,12 +371,12 @@ public class WSNZGameSession extends GameSession implements HasNextIterator<Acti
     }
 
     private enum StageOneSubGameImpl implements SubGameImpl {
-        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_below"), player -> player.getXRot() > 80f)),
-        BELOW(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_below"), player -> player.getXRot() > 80f)),
-        NOT_ABOVE(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_above"), player -> player.getXRot() < -80f)),
-        ABOVE(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_above"), player -> player.getXRot() < -80f)),
-        NOT_SNEAK(basicSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_sneak"), WSNZListeners.PLAYER_SNEAK)),
         SNEAK(basicSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_sneak"), WSNZListeners.PLAYER_SNEAK)),
+        NOT_SNEAK(basicSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_sneak"), WSNZListeners.PLAYER_SNEAK)),
+        ABOVE(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_above"), player -> player.getXRot() < -80f)),
+        NOT_ABOVE(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_above"), player -> player.getXRot() < -80f)),
+        BELOW(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_below"), player -> player.getXRot() > 80f)),
+        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_below"), player -> player.getXRot() > 80f)),
         ;
         private final WSNZSubGameData game;
 

@@ -84,6 +84,10 @@ public class Processor<T> {
         listeners.add(listener);
     }
 
+    public void emitActions(T input, Supplier<ActionSupplier<T>> actions) {
+        emitActions(input, actions.get());
+    }
+
     public void emitListener(Supplier<EventListener<T>> listener) {
         emitListener(listener.get());
     }

@@ -6,7 +6,8 @@ import xyz.jinenze.wuhumc.action.Event;
 
 public enum ModEvents implements Event {
     PLAYER_WSNZ_READY,
-    PLAYER_FALL_VOID,
+    PLAYER_OVEREATING_READY,
+    //    PLAYER_FALL_VOID,
     PLAYER_SNEAK,
     PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND,
     PLAYER_KILLED_ANOTHER_PLAYER,

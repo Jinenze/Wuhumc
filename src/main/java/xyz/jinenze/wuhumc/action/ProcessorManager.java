@@ -4,13 +4,13 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.util.ServerPlayerMixinGetter;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 public class ProcessorManager {
     private static final Processor<ServerActionContext> serverProcessor = new Processor<>();
-    private static final Map<UUID, ServerPlayerProcessor> processors = new HashMap<>();
+    private static final Map<UUID, ServerPlayerProcessor> processors = new WeakHashMap<>();
 
     public static ServerPlayerProcessor get(ServerPlayer player) {
         return ((ServerPlayerMixinGetter) player).wuhumc$getProcessor();

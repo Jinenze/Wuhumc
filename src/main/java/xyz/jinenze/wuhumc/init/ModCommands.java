@@ -1,5 +1,6 @@
 package xyz.jinenze.wuhumc.init;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -13,12 +14,17 @@ import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.ActionSupplier;
 import xyz.jinenze.wuhumc.action.ProcessorManager;
+import xyz.jinenze.wuhumc.action.ServerActionContext;
+import xyz.jinenze.wuhumc.action.ServerPlayerProcessor;
 import xyz.jinenze.wuhumc.config.ServerConfigWrapper;
 import xyz.jinenze.wuhumc.game.GameSession;
+import xyz.jinenze.wuhumc.game.OvereatingGame;
 import xyz.jinenze.wuhumc.network.Payloads;
 import xyz.jinenze.wuhumc.util.Util;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static net.minecraft.commands.Commands.argument;
@@ -82,7 +88,7 @@ public class ModCommands {
                                                 }))))
                         .then(literal("nswzposition")
                                 .then(argument("position", BlockPosArgument.blockPos()).executes(context -> {
-                                    Wuhumc.config.game_settings_wsnz.position = BlockPosArgument.getBlockPos(context, "position");
+                                    Wuhumc.config.game_settings_wsnz.position = BlockPosArgument.getBlockPos(context, "position").above(1);
                                     AutoConfig.getConfigHolder(ServerConfigWrapper.class).save();
                                     return 1;
                                 })))
@@ -95,16 +101,33 @@ public class ModCommands {
                 ).then(literal("test").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("scoreboard").then(emitPlayerActions(ModServerActions.test)))
                         .then(literal("clearinventory").then(emitPlayerActions(ModServerActions.test1)))
+                        .then(literal("overeating")
+                                .then(argument("targets", EntityArgument.players())
+                                        .executes(context -> {
+                                            Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
+                                            if (!collection.isEmpty()) {
+                                                var list = new ArrayList<ServerPlayerProcessor>();
+                                                for (ServerPlayer player : collection) {
+                                                    list.add(ProcessorManager.get(player));
+                                                }
+                                                ProcessorManager.getServerProcessor().emitActions(new ServerActionContext(List.copyOf(list)), OvereatingGame.OVEREATING_PRESET_ONE);
+                                            }
+                                            return collection.size();
+                                        })))
                 ).then(literal("client")
-                        .then(literal("joinwsnz")
-                                .executes(context -> {
-                                    if (context.getSource().getPlayer() != null && !Util.isPlayerInGame(context.getSource().getPlayer())) {
-                                        Util.setPlayerGameSession(context.getSource().getPlayer(), ModGames.WSNZ);
-                                    }
-                                    return 1;
-                                }))
+                        .then(literal("joinwsnz").executes(clientPlayerJoinGame(ModGames.WSNZ)))
+                        .then(literal("joinovereating").executes(clientPlayerJoinGame(ModGames.OVEREATING)))
                 )
         ));
+    }
+
+    private static Command<CommandSourceStack> clientPlayerJoinGame(GameSession session) {
+        return context -> {
+            if (context.getSource().getPlayer() != null && !Util.isPlayerInGame(context.getSource().getPlayer())) {
+                Util.setPlayerGameSession(context.getSource().getPlayer(), session);
+            }
+            return 1;
+        };
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> emitPlayerActions(ActionSupplier<ServerPlayer> actions) {

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.action.EventListener;
 import xyz.jinenze.wuhumc.init.ModEvents;
+import xyz.jinenze.wuhumc.init.ModGames;
 import xyz.jinenze.wuhumc.init.ModServerActions;
 import xyz.jinenze.wuhumc.util.Util;
 
@@ -35,6 +36,12 @@ public class OvereatingGame extends GameSession {
     public void addScore(ServerPlayer player) {
         Util.addScore(player, 100 - scorerCount);
         --scorerCount;
+    }
+
+    @Override
+    public void gameEnd() {
+        super.gameEnd();
+        ModGames.OVEREATING = new OvereatingGame(gameData);
     }
 
     private static final List<Supplier<ItemStack>> TIER_ONE_FOODS = new ArrayList<>(List.of(

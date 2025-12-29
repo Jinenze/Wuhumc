@@ -68,13 +68,30 @@ public class ModCommands {
                 ).then(literal("game").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("null").then(setPlayerGameSession(() -> ModGames.NULL)))
                         .then(literal("nswz").then(setPlayerGameSession(() -> ModGames.WSNZ)))
+                        .then(argument("targets", EntityArgument.players())
+                                .executes(context -> {
+                                    Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
+                                    if (!collection.isEmpty() && context.getSource().getPlayer() != null) {
+                                        for (ServerPlayer player : collection) {
+                                            context.getSource().getPlayer().sendSystemMessage(Component.literal(ProcessorManager.get(player).getGameSession().getGameData().toString()));
+                                        }
+                                    }
+                                    return collection.size();
+                                }))
                 ).then(literal("config").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(literal("respawnfly")
                                 .then(argument("bool", BoolArgumentType.bool()).executes(context -> {
                                     Wuhumc.config.respawn_fly_enabled = (BoolArgumentType.getBool(context, "bool"));
                                     AutoConfig.getConfigHolder(ServerConfigWrapper.class).save();
                                     return 1;
-                                })))
+                                }))
+                                .executes(context -> {
+                                    if (context.getSource().getPlayer() != null) {
+                                        context.getSource().getPlayer().sendSystemMessage(Component.literal(String.valueOf(Wuhumc.config.respawn_fly_enabled)));
+                                    }
+                                    return 1;
+                                })
+                        )
                         .then(literal("respawnmusic")
                                 .then(argument("targets", EntityArgument.players())
                                         .then(argument("value", BoolArgumentType.bool())
@@ -92,7 +109,13 @@ public class ModCommands {
                                     Wuhumc.config.game_settings_wsnz.position = BlockPosArgument.getBlockPos(context, "position").above(1);
                                     AutoConfig.getConfigHolder(ServerConfigWrapper.class).save();
                                     return 1;
-                                })))
+                                }))
+                                .executes(context -> {
+                                    if (context.getSource().getPlayer() != null) {
+                                        context.getSource().getPlayer().sendSystemMessage(Component.literal(Wuhumc.config.game_settings_wsnz.position.toString()));
+                                    }
+                                    return 1;
+                                }))
                         .then(literal("download").executes(context -> {
                             if (context.getSource().getPlayer() != null) {
                                 ServerPlayNetworking.send(context.getSource().getPlayer(), new Payloads.ServerConfigS2CPayload(Wuhumc.config));

@@ -7,6 +7,9 @@ import xyz.jinenze.wuhumc.network.Payloads;
 
 public class ClientNetwork {
     public static void register() {
+        ClientPlayNetworking.registerGlobalReceiver(Payloads.ServerConfigS2CPayload.TYPE, (payload, context) -> {
+            WuhumcClient.serverConfig = payload.config();
+        });
         ClientPlayNetworking.registerGlobalReceiver(Payloads.ShowScoreBoardS2CPayload.TYPE, (payload, context) -> {
             ScoreBoard.processMap(payload.scores());
         });

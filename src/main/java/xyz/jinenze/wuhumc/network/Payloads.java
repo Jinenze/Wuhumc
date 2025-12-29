@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class Payloads {
     public record ServerConfigC2SPayload(ServerConfig config) implements CustomPacketPayload {
-        public static final Identifier ID = Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "send_server_config");
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "client_to_server_server_config");
         public static final Type<ServerConfigC2SPayload> TYPE = new CustomPacketPayload.Type<>(ID);
         public static final StreamCodec<RegistryFriendlyByteBuf, ServerConfigC2SPayload> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, ServerConfigC2SPayload::getJson, ServerConfigC2SPayload::getInstance);
 
@@ -29,6 +29,26 @@ public class Payloads {
 
         @Override
         public Type<ServerConfigC2SPayload> type() {
+            return TYPE;
+        }
+    }
+
+    public record ServerConfigS2CPayload(ServerConfig config) implements CustomPacketPayload {
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Wuhumc.MOD_ID, "server_to_client_server_config");
+        public static final Type<ServerConfigS2CPayload> TYPE = new CustomPacketPayload.Type<>(ID);
+        public static final StreamCodec<RegistryFriendlyByteBuf, ServerConfigS2CPayload> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, ServerConfigS2CPayload::getJson, ServerConfigS2CPayload::getInstance);
+
+        public static ServerConfigS2CPayload getInstance(String json) {
+            return new ServerConfigS2CPayload(Wuhumc.gson.fromJson(json, ServerConfig.class));
+        }
+
+        public static String getJson(ServerConfigS2CPayload payload) {
+            return Wuhumc.gson.toJson(payload.config);
+        }
+
+
+        @Override
+        public Type<ServerConfigS2CPayload> type() {
             return TYPE;
         }
     }
@@ -68,6 +88,7 @@ public class Payloads {
     public static void register() {
         PayloadTypeRegistry.playC2S().register(ServerConfigC2SPayload.TYPE, ServerConfigC2SPayload.CODEC);
 
+        PayloadTypeRegistry.playS2C().register(ServerConfigS2CPayload.TYPE, ServerConfigS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShowScoreBoardS2CPayload.TYPE, ShowScoreBoardS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SetRespawnMusicS2CPayload.TYPE, SetRespawnMusicS2CPayload.CODEC);
     }

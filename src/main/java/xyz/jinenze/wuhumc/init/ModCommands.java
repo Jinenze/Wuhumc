@@ -10,6 +10,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.Wuhumc;
 import xyz.jinenze.wuhumc.action.ActionSupplier;
@@ -94,7 +95,7 @@ public class ModCommands {
                                 })))
                         .then(literal("download").executes(context -> {
                             if (context.getSource().getPlayer() != null) {
-                                ServerPlayNetworking.send(context.getSource().getPlayer(), new Payloads.ServerConfigC2SPayload(Wuhumc.config));
+                                ServerPlayNetworking.send(context.getSource().getPlayer(), new Payloads.ServerConfigS2CPayload(Wuhumc.config));
                             }
                             return 1;
                         }))

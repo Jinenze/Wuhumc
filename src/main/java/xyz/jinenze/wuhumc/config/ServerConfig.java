@@ -9,6 +9,8 @@ import net.minecraft.core.BlockPos;
 public class ServerConfig implements ConfigData {
     public boolean respawn_fly_enabled = true;
 
+    public double heavy_weight_pressure_plate_force_factor = 10.0;
+
     @ConfigEntry.Gui.CollapsibleObject
     public WSNZGameSettings game_settings_wsnz = new WSNZGameSettings();
 
@@ -16,7 +18,8 @@ public class ServerConfig implements ConfigData {
         public int stage_one_max_rounds = 5;
         public int stage_two_max_rounds = 5;
         public int stage_three_max_rounds = 5;
-        @ConfigEntry.Gui.CollapsibleObject
+
+        @ConfigEntry.Gui.Excluded
         public BlockPos position = new BlockPos(0, 0, 0);
     }
 }

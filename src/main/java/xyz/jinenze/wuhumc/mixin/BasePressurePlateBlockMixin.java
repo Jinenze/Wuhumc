@@ -2,7 +2,9 @@ package xyz.jinenze.wuhumc.mixin;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -13,7 +15,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BasePressurePlateBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.LevelData;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -43,6 +47,12 @@ public abstract class BasePressurePlateBlockMixin {
                 Wuhumc.LOGGER.info(blockPos.toShortString());
             }
             ci.cancel();
+        }
+        if (blockState.getBlock().equals(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE) && blockState.getValue(BlockStateProperties.POWER) == 0) {
+            if (entity instanceof ServerPlayer player) {
+                player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3((-Math.sin(Math.toRadians(player.getYRot()))) * Wuhumc.config.heavy_weight_pressure_plate_force_factor, 0.5, Math.cos(Math.toRadians(player.getYRot())) * Wuhumc.config.heavy_weight_pressure_plate_force_factor)));
+                player.connection.send(new ClientboundSoundPacket(new Holder.Direct<>(SoundEvents.BAT_TAKEOFF), SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
+            }
         }
     }
 }

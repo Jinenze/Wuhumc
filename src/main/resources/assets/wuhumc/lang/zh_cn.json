@@ -14,6 +14,7 @@
   "text.autoconfig.wuhumc.option.client.score_board.total_visible_time": "动画总时长时间长度",
   "text.autoconfig.wuhumc.category.server": "服务端设置",
   "text.autoconfig.wuhumc.option.server.respawn_fly_enabled": "起飞！",
+  "text.autoconfig.wuhumc.option.server.heavy_weight_pressure_plate_force_factor": "弹射压力版动量乘数",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz": "wsnz",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz.stage_one_max_rounds": "阶段一轮数上限",
   "text.autoconfig.wuhumc.option.server.game_settings_wsnz.stage_two_max_rounds": "阶段二轮数上限",

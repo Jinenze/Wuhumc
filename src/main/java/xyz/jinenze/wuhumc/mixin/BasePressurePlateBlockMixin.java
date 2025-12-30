@@ -38,15 +38,18 @@ public abstract class BasePressurePlateBlockMixin {
                     player.sendSystemMessage(Component.translatable("message.wuhumc.spawn_point"), true);
                     player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_PLING, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
                     ci.cancel();
+                    return;
                 }
                 BlockPos oldPos = player.getRespawnConfig().respawnData().pos();
                 if (oldPos.equals(blockPos.above(1))) {
                     ci.cancel();
+                    return;
                 }
                 player.setRespawnPosition(new ServerPlayer.RespawnConfig(new LevelData.RespawnData(new GlobalPos(level.dimension(), blockPos.above(1)), 0, 0), true), false);
                 player.sendSystemMessage(Component.translatable("message.wuhumc.spawn_point"), true);
                 player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_PLING, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
                 ci.cancel();
+                return;
             } else if (blockState.getBlock().equals(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE) && blockState.getValue(BlockStateProperties.POWER) == 0) {
                 player.connection.send(new ClientboundSetEntityMotionPacket(player.getId(), new Vec3((-Math.sin(Math.toRadians(player.getYRot()))) * Wuhumc.config.heavy_weight_pressure_plate_force_factor, 0.5, Math.cos(Math.toRadians(player.getYRot())) * Wuhumc.config.heavy_weight_pressure_plate_force_factor)));
                 player.connection.send(new ClientboundSoundPacket(new Holder.Direct<>(SoundEvents.BAT_TAKEOFF), SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 1f, 0.5f, 0));
@@ -55,6 +58,7 @@ public abstract class BasePressurePlateBlockMixin {
             if (blockState.getBlock().equals(Blocks.OAK_PRESSURE_PLATE) && boat.getFirstPassenger() != null && boat.getFirstPassenger() instanceof ServerPlayer player) {
                 ProcessorManager.get(player).emitEventToAll(ModEvents.PLAYER_TRIGGER_OAK_PRESSURE_PLATE);
                 ci.cancel();
+                return;
             }
         }
     }

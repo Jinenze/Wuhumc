@@ -18,7 +18,7 @@ public class ModClientCommands {
                         .then(literal("config")
                                 .then(literal("send"
                                 ).executes(context -> {
-                                    ClientPlayNetworking.send(new Payloads.ServerConfigC2SPayload(WuhumcClient.serverConfig));
+                                    ClientPlayNetworking.send(new Payloads.ServerConfigC2SPayload(WuhumcClient.configHolder.getConfig().server));
                                     return 1;
                                 })))
                         .then(literal("off").executes(context -> {

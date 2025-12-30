@@ -11,8 +11,8 @@ public class InventorySnapshot {
     public InventorySnapshot(ServerPlayer player) {
         var snapshot = new Inventory(player, new EntityEquipment());
         snapshot.replaceWith(player.getInventory());
-        snapshot.add(player.containerMenu.getCarried().copy());
-        player.inventoryMenu.getInputGridSlots().forEach(slot -> snapshot.add(slot.getItem().copy()));
+        snapshot.add(player.containerMenu.getCarried());
+        player.inventoryMenu.getInputGridSlots().forEach(slot -> snapshot.add(slot.getItem()));
         this.inventorySnapshot = snapshot;
     }
 

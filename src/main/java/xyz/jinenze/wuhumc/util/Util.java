@@ -19,10 +19,13 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
-import xyz.jinenze.wuhumc.action.ProcessorManager;
+import xyz.jinenze.wuhumc.action.*;
 import xyz.jinenze.wuhumc.game.GameSession;
 import xyz.jinenze.wuhumc.init.ModGames;
 import xyz.jinenze.wuhumc.init.ModItems;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Util {
 //        public static void removeItemsFromPlayer(ServerPlayer player, List<Item> items) {
@@ -50,6 +53,14 @@ public class Util {
         player.getInventory().setItem(0, new ItemStack(ModItems.READY_ITEM.getItem()));
         player.getInventory().setSelectedSlot(0);
         player.connection.send(new ClientboundSetHeldSlotPacket(0));
+    }
+
+    public static void removeReadyItemsFromPlayer(ServerPlayer player) {
+        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
+            if (Util.isReadyItems(player.getInventory().getItem(index).getItem())) {
+                player.getInventory().removeItemNoUpdate(index);
+            }
+        }
     }
 
     public static void removeCurrentContainerItemsFromPlayer(ServerPlayer player) {
@@ -96,14 +107,14 @@ public class Util {
 
     public static void addScore(ServerPlayer player, int score) {
         if (score == 0) {
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_add_score_failed")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game.add_score_failed")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             return;
         } else if (score > 0) {
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_add_score")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game.add_score")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_BELL, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         } else {
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_minus_score")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game.minus_score")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.SHIELD_BLOCK, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         ProcessorManager.get(player).addScore(score);
@@ -118,5 +129,23 @@ public class Util {
             ProcessorManager.get(player).setCurrentGame(gameSession);
             Util.placeReadyItemToIndexZero(player);
         }
+    }
+
+    public static EventListener<ServerPlayer> newRecursionListener(Event event) {
+        return new EventListener<>() {
+            @Override
+            public Event getEvent() {
+                return event;
+            }
+
+            @Override
+            public Consumer<ServerPlayer> getAction() {
+                return player -> ProcessorManager.get(player).emitListener(this);
+            }
+        };
+    }
+
+    public static <T> Function<ActionsHandler<T>, Boolean> handlerIsAction(ActionSupplier<T> action) {
+        return handler -> handler.getActions().equals(action);
     }
 }

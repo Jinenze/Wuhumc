@@ -3,10 +3,7 @@ package xyz.jinenze.wuhumc.init;
 import net.minecraft.server.level.ServerPlayer;
 import xyz.jinenze.wuhumc.action.Event;
 import xyz.jinenze.wuhumc.action.EventListener;
-import xyz.jinenze.wuhumc.game.GameData;
-import xyz.jinenze.wuhumc.game.GameSession;
-import xyz.jinenze.wuhumc.game.OvereatingGame;
-import xyz.jinenze.wuhumc.game.WSNZGame;
+import xyz.jinenze.wuhumc.game.*;
 
 import java.util.function.Consumer;
 
@@ -34,6 +31,8 @@ public class ModGames {
     public static WSNZGame WSNZ = new WSNZGame();
 
     public static OvereatingGame OVEREATING = new OvereatingGame(OvereatingGame.DEFAULT_SETTING_ONE_GAME_DATA);
+
+    public static IceRaceGame ICE_RACE = new IceRaceGame();
 
     public static void register() {
     }

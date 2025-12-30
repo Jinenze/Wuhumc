@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ModServerActions {
     public static final ActionList<ServerPlayer> NULL_PLAYER = ActionList.<ServerPlayer>getBuilder().action((player, handler) -> true).build();
@@ -63,11 +62,7 @@ public class ModServerActions {
     }).build();
 
     public static final ActionList<ServerPlayer> clearReadyItem = ActionList.<ServerPlayer>getBuilder().wait(60).action((player, handler) -> {
-        for (int index = 0; index < player.getInventory().getContainerSize(); ++index) {
-            if (Util.isReadyItems(player.getInventory().getItem(index).getItem())) {
-                player.getInventory().removeItemNoUpdate(index);
-            }
-        }
+        Util.removeReadyItemsFromPlayer(player);
         return true;
     }).build();
 
@@ -87,7 +82,7 @@ public class ModServerActions {
         context.processors().forEach(processor -> ServerPlayNetworking.send(processor.getPlayer(), new Payloads.ShowScoreBoardS2CPayload(map)));
     }
 
-    public static ActionSupplier<ServerActionContext> displayCountdown(int delay) {
+    public static ActionSupplier<ServerActionContext> newCountdownAction(int delay) {
         return () -> new HasNextIterator<>() {
             private int count = delay;
             private final Action<ServerActionContext> action = (context, handler) -> {
@@ -164,16 +159,16 @@ public class ModServerActions {
             maxProcessor.getPlayer().getInventory().setItem(EquipmentSlot.HEAD.getIndex(36), itemStack);
         }
 
-        maxProcessor.getGameSession().gameEnd();
-
+        var gameSession = maxProcessor.getGameSession();
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            if (ProcessorManager.get(player).getGameSession().equals(maxProcessor.getGameSession())) {
+            if (ProcessorManager.get(player).getGameSession().equals(gameSession)) {
                 ProcessorManager.get(player).setCurrentGame(ModGames.NULL);
                 player.setRespawnPosition(null, false);
                 player.setGameMode(GameType.ADVENTURE);
                 Util.teleportTo(player, level.getRespawnData().pos().getBottomCenter());
             }
         }
+        gameSession.gameEnd();
 
         var pos = level.getRespawnData().pos().getBottomCenter();
         var firework = new ItemStack(Items.FIREWORK_ROCKET);
@@ -200,7 +195,7 @@ public class ModServerActions {
         for (var processor : context.processors()) {
             if (processor.emitEventToFirstMatch(processor.getGameSession().getGameData().onReadyEvent())) {
                 for (var anotherProcessor : context.processors()) {
-                    anotherProcessor.getPlayer().connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_cancel")));
+                    anotherProcessor.getPlayer().connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game.cancel")));
                 }
                 return true;
             }
@@ -217,24 +212,19 @@ public class ModServerActions {
         }
     }
 
-    public static final ActionList<ServerActionContext> GAME_COUNTDOWN = ActionList.<ServerActionContext>getBuilder(
+    public static final ActionSupplier<ServerActionContext> GAME_COUNTDOWN = ActionList.<ServerActionContext>getBuilder(
     ).action((context, handler) -> {
-                showCountdown(context, "title.wuhumc.game_countdown_5");
+                showCountdown(context, "title.wuhumc.game.countdown_5");
                 return false;
             }
-    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_4")
-    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_3")
-    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_2")
-    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_1")
-    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game_countdown_end")
+    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game.countdown_4")
+    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game.countdown_3")
+    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game.countdown_2")
+    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game.countdown_1")
+    ).wait(20).action((context, handler) -> countdown(context, "title.wuhumc.game.countdown_end")
     ).action((context, handler) -> {
                 context.processors().forEach(processor -> processor.getPlayer().getInventory().removeItemNoUpdate(0));
-                ProcessorManager.getServerProcessor().planToRemoveRunningActions(new Supplier<>() {
-                    @Override
-                    public ActionSupplier<ServerActionContext> get() {
-                        return GAME_COUNTDOWN;
-                    }
-                });
+                ProcessorManager.getServerProcessor().planToRemoveActions(Util.handlerIsAction(getCountdownAction()));
                 context.processors().forEach(processor -> {
                     processor.getInventoryCacheStack().push(new InventorySnapshot(processor.getPlayer()));
                     Util.removeInventoryItemsFromPlayer(processor.getPlayer());
@@ -244,6 +234,10 @@ public class ModServerActions {
                 return true;
             }
     ).build();
+
+    private static ActionSupplier<ServerActionContext> getCountdownAction() {
+        return GAME_COUNTDOWN;
+    }
 
     public static void register() {
     }

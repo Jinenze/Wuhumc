@@ -2,8 +2,6 @@ package xyz.jinenze.wuhumc.action;
 
 import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
-
 public class PlayerProcessor<T extends Player> extends Processor<T> {
     protected T player;
 
@@ -16,10 +14,6 @@ public class PlayerProcessor<T extends Player> extends Processor<T> {
     }
 
     public void emitActions(ActionSupplier<T> actions) {
-        super.emitActions(player, actions);
-    }
-
-    public void emitActions(Supplier<ActionSupplier<T>> actions) {
         super.emitActions(player, actions);
     }
 

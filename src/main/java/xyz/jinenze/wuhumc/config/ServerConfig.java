@@ -22,4 +22,12 @@ public class ServerConfig implements ConfigData {
         @ConfigEntry.Gui.Excluded
         public BlockPos position = new BlockPos(0, 0, 0);
     }
+
+    @ConfigEntry.Gui.Excluded
+    public IceRaceGameSettings game_settings_ice_race = new IceRaceGameSettings();
+
+    public static class IceRaceGameSettings {
+        @ConfigEntry.Gui.Excluded
+        public BlockPos position = new BlockPos(0, 0, 0);
+    }
 }

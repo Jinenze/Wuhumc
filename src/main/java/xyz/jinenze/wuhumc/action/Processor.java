@@ -1,22 +1,24 @@
 package xyz.jinenze.wuhumc.action;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Processor<T> {
     private boolean actionProcessing;
-    private boolean listenerProcessing;
-    private final ArrayList<ActionsHandler<T>> handlers = new ArrayList<>();
-    private final ArrayList<ActionsHandler<T>> handlersCache = new ArrayList<>();
-    private final ArrayList<ActionSupplier<T>> needRemoveActions = new ArrayList<>();
-    private final ArrayList<EventListener<T>> listeners = new ArrayList<>();
-    private final ArrayList<EventListener<T>> listenersCache = new ArrayList<>();
+    private final List<ActionsHandler<T>> handlers = new ArrayList<>();
+    private final List<ActionsHandler<T>> handlersCache = new ArrayList<>();
+    private final List<Function<ActionsHandler<T>, Boolean>> needRemoveHandlerPredicates = new ArrayList<>();
+    private final List<EventListener<T>> listeners = new ArrayList<>();
+    private final Deque<Consumer<T>> listenerActionQueue = new ArrayDeque<>();
 
     public void tick() {
         actionProcessing = true;
-        needRemoveActions.removeIf(actions -> {
-            handlers.removeIf(handler -> handler.getActions().equals(actions));
+        needRemoveHandlerPredicates.removeIf(predicate -> {
+            handlers.removeIf(predicate::apply);
             return true;
         });
         handlers.removeIf(ActionsHandler::tick);
@@ -30,43 +32,41 @@ public class Processor<T> {
     }
 
     public boolean emitEventToFirstMatch(T input, Event event) {
-        // Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
-        listenerProcessing = true;
+//        Wuhumc.LOGGER.info("processor: {}, event: {}", getClass(), event.toString());
         var iterator = listeners.iterator();
         boolean result = false;
         while (iterator.hasNext()) {
             var listener = iterator.next();
             if (listener.getEvent().equals(event)) {
-                listener.getAction().accept(input);
+                listenerActionQueue.add(listener.getAction());
                 iterator.remove();
                 result = true;
                 break;
             }
         }
-        listeners.addAll(listenersCache);
-        listenersCache.clear();
-        listenerProcessing = false;
+        while (!listenerActionQueue.isEmpty()) {
+            listenerActionQueue.pop().accept(input);
+        }
         return result;
     }
 
     public void emitEventToAll(T input, Event event) {
-        // Wuhumc.LOGGER.info("Event dispatch: {}", event.toString());
-        listenerProcessing = true;
-        listeners.removeIf((listener) -> {
+//        Wuhumc.LOGGER.info("processor: {}, event: {}", getClass(), event.toString());
+        var iterator = listeners.iterator();
+        while (iterator.hasNext()) {
+            var listener = iterator.next();
             if (listener.getEvent().equals(event)) {
-                listener.getAction().accept(input);
-                return true;
+                listenerActionQueue.add(listener.getAction());
+                iterator.remove();
             }
-            return false;
-        });
-        listeners.addAll(listenersCache);
-        listenersCache.clear();
-        listenerProcessing = false;
+        }
+        while (!listenerActionQueue.isEmpty()) {
+            listenerActionQueue.pop().accept(input);
+        }
     }
 
     public void emitActions(T input, ActionSupplier<T> actions) {
-        // Wuhumc.LOGGER.info("Action emit: {}", actions.toString());
-        // Wuhumc.LOGGER.info(actionProcessing ? "handlersCache" : "handlers");
+//        Wuhumc.LOGGER.info("processor: {}, action: {}", getClass(), actions.toString());
         if (actionProcessing) {
             handlersCache.add(new ActionsHandler<>(input, actions));
             return;
@@ -75,21 +75,8 @@ public class Processor<T> {
     }
 
     public void emitListener(EventListener<T> listener) {
-        // Wuhumc.LOGGER.info("Listener emit: {}", listener.toString());
-        // Wuhumc.LOGGER.info(actionProcessing ? "listenersCache" : "listeners");
-        if (listenerProcessing) {
-            listenersCache.add(listener);
-            return;
-        }
+//        Wuhumc.LOGGER.info("processor: {}, listener: {}", getClass(), listener.toString());
         listeners.add(listener);
-    }
-
-    public void emitActions(T input, Supplier<ActionSupplier<T>> actions) {
-        emitActions(input, actions.get());
-    }
-
-    public void emitListener(Supplier<EventListener<T>> listener) {
-        emitListener(listener.get());
     }
 
     public void clearActions() {
@@ -100,20 +87,12 @@ public class Processor<T> {
         listeners.clear();
     }
 
-    public void planToRemoveRunningActions(ActionSupplier<T> actions) {
-        needRemoveActions.add(actions);
-    }
-
-    public void planToRemoveRunningActions(Supplier<ActionSupplier<T>> actions) {
-        planToRemoveRunningActions(actions.get());
+    public void planToRemoveActions(Function<ActionsHandler<T>, Boolean> predicate) {
+        needRemoveHandlerPredicates.add(predicate);
     }
 
     public void removeListener(EventListener<T> listener) {
-        // Wuhumc.LOGGER.info("Listener removement: {}", listener.toString());
-        listeners.removeIf(listener1 -> {
-            // Wuhumc.LOGGER.info(listener1.equals(listener) ? "true" : "false");
-            return listener1.equals(listener);
-        });
+        listeners.removeIf(listener::equals);
     }
 
     public Processor() {

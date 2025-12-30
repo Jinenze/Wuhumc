@@ -66,8 +66,23 @@ public class ModCommands {
                             return 1;
                         })))
                 ).then(literal("game").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                        .then(literal("null").then(setPlayerGameSession(() -> ModGames.NULL)))
+                        .then(literal("null")
+                                .then(argument("targets", EntityArgument.players())
+                                        .executes(context -> {
+                                            Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
+                                            if (!collection.isEmpty()) {
+                                                for (ServerPlayer player : collection) {
+                                                    Util.removeReadyItemsFromPlayer(player);
+                                                    ProcessorManager.get(player).setCurrentGame(ModGames.NULL);
+                                                    ProcessorManager.get(player).clearActions();
+                                                    ProcessorManager.get(player).clearListeners();
+                                                }
+                                            }
+                                            return collection.size();
+                                        })))
                         .then(literal("nswz").then(setPlayerGameSession(() -> ModGames.WSNZ)))
+                        .then(literal("overeating").then(setPlayerGameSession(() -> ModGames.OVEREATING)))
+                        .then(literal("icerace").then(setPlayerGameSession(() -> ModGames.ICE_RACE)))
                         .then(argument("targets", EntityArgument.players())
                                 .executes(context -> {
                                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
@@ -116,6 +131,18 @@ public class ModCommands {
                                     }
                                     return 1;
                                 }))
+                        .then(literal("iceraceposition")
+                                .then(argument("position", BlockPosArgument.blockPos()).executes(context -> {
+                                    Wuhumc.config.game_settings_ice_race.position = BlockPosArgument.getBlockPos(context, "position").above(1);
+                                    AutoConfig.getConfigHolder(ServerConfigWrapper.class).save();
+                                    return 1;
+                                }))
+                                .executes(context -> {
+                                    if (context.getSource().getPlayer() != null) {
+                                        context.getSource().getPlayer().sendSystemMessage(Component.literal(Wuhumc.config.game_settings_ice_race.position.toString()));
+                                    }
+                                    return 1;
+                                }))
                         .then(literal("download").executes(context -> {
                             if (context.getSource().getPlayer() != null) {
                                 ServerPlayNetworking.send(context.getSource().getPlayer(), new Payloads.ServerConfigS2CPayload(Wuhumc.config));
@@ -139,16 +166,17 @@ public class ModCommands {
                                             return collection.size();
                                         })))
                 ).then(literal("client")
-                        .then(literal("joinwsnz").executes(clientPlayerJoinGame(ModGames.WSNZ)))
-                        .then(literal("joinovereating").executes(clientPlayerJoinGame(ModGames.OVEREATING)))
+                        .then(literal("joinwsnz").executes(clientPlayerJoinGame(() -> ModGames.WSNZ)))
+                        .then(literal("joinovereating").executes(clientPlayerJoinGame(() -> ModGames.OVEREATING)))
+                        .then(literal("joinicerace").executes(clientPlayerJoinGame(() -> ModGames.ICE_RACE)))
                 )
         ));
     }
 
-    private static Command<CommandSourceStack> clientPlayerJoinGame(GameSession session) {
+    private static Command<CommandSourceStack> clientPlayerJoinGame(Supplier<GameSession> session) {
         return context -> {
             if (context.getSource().getPlayer() != null && !Util.isPlayerInGame(context.getSource().getPlayer())) {
-                Util.setPlayerGameSession(context.getSource().getPlayer(), session);
+                Util.setPlayerGameSession(context.getSource().getPlayer(), session.get());
             }
             return 1;
         };
@@ -167,13 +195,13 @@ public class ModCommands {
                 });
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> setPlayerGameSession(Supplier<GameSession> getter) {
+    private static ArgumentBuilder<CommandSourceStack, ?> setPlayerGameSession(Supplier<GameSession> session) {
         return argument("targets", EntityArgument.players())
                 .executes(context -> {
                     Collection<ServerPlayer> collection = EntityArgument.getPlayers(context, "targets");
                     if (!collection.isEmpty()) {
                         for (ServerPlayer player : collection) {
-                            Util.setPlayerGameSession(player, getter.get());
+                            Util.setPlayerGameSession(player, session.get());
                         }
                     }
                     return collection.size();

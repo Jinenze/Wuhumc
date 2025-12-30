@@ -41,6 +41,7 @@ public class OvereatingGame extends GameSession {
     @Override
     public void gameEnd() {
         super.gameEnd();
+        //todo: need nuke
         ModGames.OVEREATING = new OvereatingGame(gameData);
     }
 
@@ -59,7 +60,7 @@ public class OvereatingGame extends GameSession {
             }
 
             Item goal = TIER_ONE_FOODS.get(RANDOM.nextInt(TIER_ONE_FOODS.size())).get().getItem();
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_overeating_eat").append(goal.getName())));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_overeating.eat").append(goal.getName())));
 
             ProcessorManager.get(player).emitListener(new OvereatingEventListener() {
                 @Override
@@ -73,7 +74,7 @@ public class OvereatingGame extends GameSession {
                         MutableInt score = playerRounds.get(ProcessorManager.get(player1));
                         score.add(1);
                         if (score.intValue() < maxRounds) {
-                            ProcessorManager.get(player1).emitActions(recursion);
+                            ProcessorManager.get(player1).emitActions(recursion.get());
                         } else {
                             playerRounds.remove(ProcessorManager.get(player1));
                             Util.removeInventoryItemsFromPlayer(player1);
@@ -120,8 +121,10 @@ public class OvereatingGame extends GameSession {
         return true;
     }).build();
 
+    private static final ActionSupplier<ServerActionContext> COUNTDOWN_ACTION = ModServerActions.newCountdownAction(320);
+
     private static final ActionSupplier<ServerActionContext> OVEREATING_PRESET_ONE_MAIN = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
-        ProcessorManager.getServerProcessor().emitActions(context, ModServerActions.displayCountdown(320));
+        ProcessorManager.getServerProcessor().emitActions(context, COUNTDOWN_ACTION);
         context.processors().forEach(processor -> {
             playerRounds.put(processor, new MutableInt());
             processor.emitActions(DEFAULT_SETTINGS_ONE);
@@ -137,16 +140,5 @@ public class OvereatingGame extends GameSession {
         return true;
     }).build();
 
-    public static final GameData DEFAULT_SETTING_ONE_GAME_DATA = new GameData(ModEvents.PLAYER_OVEREATING_READY, OVEREATING_PRESET_ONE_MAIN, new EventListener<>() {
-        @Override
-        public Event getEvent() {
-            return ModEvents.PLAYER_OVEREATING_READY;
-        }
-
-        @Override
-        public Consumer<ServerPlayer> getAction() {
-            return player -> {
-            };
-        }
-    });
+    public static final GameData DEFAULT_SETTING_ONE_GAME_DATA = new GameData(ModEvents.PLAYER_OVEREATING_READY, OVEREATING_PRESET_ONE_MAIN);
 }

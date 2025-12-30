@@ -27,6 +27,10 @@ public class ActionsHandler<T> {
         return actions;
     }
 
+    public T getInput() {
+        return input;
+    }
+
     public void setDelay(int delay) {
         this.delay = delay;
     }

@@ -68,7 +68,7 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
                 return null;
             }
         };
-        handlers = new LinkedList<>();
+        handlers = new ArrayDeque<>();
         action = (context, handler) -> {
             if (handlers.isEmpty()) {
                 if (subGamesIterator.hasNext() && remainRounds > 0) {
@@ -108,6 +108,7 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
     @Override
     public void gameEnd() {
         super.gameEnd();
+        //todo: need nuke
         ModGames.WSNZ = new WSNZGame();
     }
 
@@ -135,27 +136,27 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
     private static final ActionList<ServerActionContext> REFRESH_ACTIONS = ActionList.<ServerActionContext>getBuilder().action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_1")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz.refresh_1")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }).wait(5).action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_2")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz.refresh_2")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }).wait(5).action((context, handler) -> {
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_refresh_3")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz.refresh_3")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
         }
         return false;
     }).wait(20).action((context, handler) -> {
         //todo: we need refactor
-        ProcessorManager.getServerProcessor().emitActions(context, displayCountdown(((WSNZGame) context.processors().getFirst().getGameSession()).currentSubGame.totalTime()));
+        ProcessorManager.getServerProcessor().emitActions(context, newCountdownAction(((WSNZGame) context.processors().getFirst().getGameSession()).currentSubGame.totalTime()));
         return true;
     }).build();
 
@@ -166,7 +167,7 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
         for (var processor : context.processors()) {
             var player = processor.getPlayer();
             player.addItem(new ItemStack(Items.IRON_INGOT, 24));
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_craft_full_iron_armor")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz.craft_full_iron_armor")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             player.connection.send(new ClientboundBlockUpdatePacket(blockPos, Blocks.CRAFTING_TABLE.defaultBlockState()));
             DATA_IRON_ARMOR_PIECES_COUNT.put(ProcessorManager.get(player), 0);
@@ -208,7 +209,7 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
             player.level().addFreshEntity(horse);
             player.startRiding(horse, true, false);
             player.addItem(new ItemStack(Items.NETHERITE_SPEAR, 1));
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz_horse_duel")));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.wuhumc.game_wsnz.horse_duel")));
             player.connection.send(new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HAT, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.6f, 1f, 0));
             processor.emitListener(WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER);
             player.sendSystemMessage(WSNZSubGameData.ScoringRuleImpl.INFINITE.getMessage());
@@ -233,7 +234,7 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
     private static final ArrayList<WSNZSubGameData> stageThreeSubGames = getSubGames(StageThreeSubGameImpl.values());
     private static final List<ArrayList<WSNZSubGameData>> stages = List.of(stageOneSubGames, stageTwoSubGames, stageThreeSubGames);
     private static final List<Supplier<Integer>> stageMaxRounds = List.of(() -> Wuhumc.config.game_settings_wsnz.stage_one_max_rounds, () -> Wuhumc.config.game_settings_wsnz.stage_two_max_rounds, () -> Wuhumc.config.game_settings_wsnz.stage_three_max_rounds);
-    private static final List<ActionSupplier<ServerActionContext>> stageCustomAction = List.of(basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz_stage_one")), basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz_stage_two")), basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz_stage_three")));
+    private static final List<ActionSupplier<ServerActionContext>> stageCustomAction = List.of(basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz.stage_one")), basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz.stage_two")), basicStageCustomAction(Component.translatable("title.wuhumc.game_wsnz.stage_three")));
 
     private static ActionSupplier<ServerActionContext> basicStageCustomAction(Component text) {
         return ActionList.<ServerActionContext>getBuilder().action((input, handler) -> {
@@ -359,12 +360,12 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
     }
 
     private enum StageOneSubGameImpl implements SubGameImpl {
-        SNEAK(basicSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_sneak"), WSNZListeners.PLAYER_SNEAK)),
-        NOT_SNEAK(basicSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_sneak"), WSNZListeners.PLAYER_SNEAK)),
-        ABOVE(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_above"), player -> player.getXRot() < -30f)),
-        NOT_ABOVE(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_above"), player -> player.getXRot() < -30f)),
-        BELOW(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_below"), player -> player.getXRot() > 30f)),
-        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_not_below"), player -> player.getXRot() > 30f)),
+        SNEAK(basicSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz.sneak"), WSNZListeners.PLAYER_SNEAK)),
+        NOT_SNEAK(basicSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz.not_sneak"), WSNZListeners.PLAYER_SNEAK)),
+        ABOVE(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz.above"), player -> player.getXRot() < -30f)),
+        NOT_ABOVE(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz.not_above"), player -> player.getXRot() < -30f)),
+        BELOW(needMonitorSubGame(20, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz.below"), player -> player.getXRot() > 30f)),
+        NOT_BElOW(needMonitorSubGame(20, -1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz.not_below"), player -> player.getXRot() > 30f)),
         ;
         private final WSNZSubGameData game;
 
@@ -379,11 +380,10 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
     }
 
     private enum StageTwoSubGameImpl implements SubGameImpl {
-        //        FALL_VOID(basicSubGame(60, 1, WSNZSubGameData.ScoringRuleImpl.TOP_HALF, Component.translatable("title.wuhumc.game_wsnz_fall_void"), WSNZListeners.PLAYER_FALL_VOID)),
-        DIAMOND_GIFT(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_diamond_gift"), WSNZListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, List.of(DIAMOND::copy))),
-        PLAYER_DUEL(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_player_duel"), WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER, List.of(() -> new ItemStack(Items.NETHERITE_SPEAR)))),
+        DIAMOND_GIFT(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz.diamond_gift"), WSNZListeners.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, List.of(DIAMOND::copy))),
+        PLAYER_DUEL(needItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz.player_duel"), WSNZListeners.PLAYER_KILLED_ANOTHER_PLAYER, List.of(() -> new ItemStack(Items.NETHERITE_SPEAR)))),
         CRAFT_FULL_IRON_ARMOR(WSNZGame.CRAFT_FULL_IRON_ARMOR),
-        CRAFT_DIAMOND_AXE(craftItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz_craft_axe"), WSNZListeners.PLAYER_CRAFTED_DIAMOND_AXE, List.of(() -> new ItemStack(Items.DIAMOND, 3), () -> new ItemStack(Items.STICK, 2)))),
+        CRAFT_DIAMOND_AXE(craftItemSubGame(120, 1, WSNZSubGameData.ScoringRuleImpl.INFINITE, Component.translatable("title.wuhumc.game_wsnz.craft_axe"), WSNZListeners.PLAYER_CRAFTED_DIAMOND_AXE, List.of(() -> new ItemStack(Items.DIAMOND, 3), () -> new ItemStack(Items.STICK, 2)))),
         ;
         private final WSNZSubGameData game;
 
@@ -429,13 +429,6 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
     }
 
     private enum WSNZListeners implements EventListener<ServerPlayer> {
-        PLAYER_WSNZ_READY(ModEvents.PLAYER_WSNZ_READY, player -> ProcessorManager.get(player).emitListener(new Supplier<>() {
-            @Override
-            public EventListener<ServerPlayer> get() {
-                return PLAYER_WSNZ_READY;
-            }
-        })),
-        //        PLAYER_FALL_VOID(ModEvents.PLAYER_FALL_VOID, Util::addScore),
         PLAYER_SNEAK(ModEvents.PLAYER_SNEAK, Util::addScore),
         PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND(ModEvents.PLAYER_ANOTHER_PLAYER_PICKUP_DIAMOND, Util::addScore),
         PLAYER_CRAFTED_DIAMOND_AXE(new ModEvents.CraftEvent(ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace("diamond_axe"))), Util::addScore),
@@ -477,11 +470,11 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
 
         private enum ScoringRuleImpl implements ScoringRule {
             NONE((scorerCount, scoreFactor, context) -> 0, Component.literal("")),
-            INFINITE((scorerCount, scoreFactor, context) -> scoreFactor, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_infinite")),
-            TOP_ONE((scorerCount, scoreFactor, context) -> scorerCount == 1 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_one")),
-            TOP_HALF((scorerCount, scoreFactor, context) -> scorerCount > context.processors().size() / 2 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_half")),
-            TOP_THREE((scorerCount, scoreFactor, context) -> scorerCount > 3 ? 0 : scoreFactor, Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_three")),
-            TOP_DECREASE((scorerCount, scoreFactor, context) -> Math.max(scoreFactor - scorerCount, 0), Component.translatable("message.wuhumc.game_wsnz_scoring_rule_top_decrease")),
+            INFINITE((scorerCount, scoreFactor, context) -> scoreFactor, Component.translatable("message.wuhumc.game_wsnz.scoring_rule_infinite")),
+            TOP_ONE((scorerCount, scoreFactor, context) -> scorerCount == 1 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz.scoring_rule_top_one")),
+            TOP_HALF((scorerCount, scoreFactor, context) -> scorerCount > context.processors().size() / 2 ? scoreFactor : 0, Component.translatable("message.wuhumc.game_wsnz.scoring_rule_top_half")),
+            TOP_THREE((scorerCount, scoreFactor, context) -> scorerCount > 3 ? 0 : scoreFactor, Component.translatable("message.wuhumc.game_wsnz.scoring_rule_top_three")),
+            TOP_DECREASE((scorerCount, scoreFactor, context) -> Math.max(scoreFactor - scorerCount, 0), Component.translatable("message.wuhumc.game_wsnz.scoring_rule_top_decrease")),
             ;
 
             private final ScoreGetter scoreGetter;
@@ -504,5 +497,5 @@ public class WSNZGame extends GameSession implements HasNextIterator<Action<Serv
         }
     }
 
-    public static final GameData GAME_DATA = new GameData(ModEvents.PLAYER_WSNZ_READY, WSNZ_MAIN, WSNZListeners.PLAYER_WSNZ_READY);
+    public static final GameData GAME_DATA = new GameData(ModEvents.PLAYER_WSNZ_READY, WSNZ_MAIN);
 }
